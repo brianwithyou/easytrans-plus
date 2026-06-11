@@ -1,0 +1,12 @@
+# 复制为 application-local.yaml 并填入真实密钥（勿提交到 Git）
+
+app:
+  jwt:
+    secret: your-jwt-secret-at-least-32-characters-long
+  dashscope:
+    api-key: sk-your-dashscope-api-key
+
+spring:
+  datasource:
+    username: root
+    password: your-mysql-password
