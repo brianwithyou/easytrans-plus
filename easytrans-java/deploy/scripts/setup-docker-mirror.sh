@@ -33,4 +33,4 @@ systemctl daemon-reload
 systemctl restart docker
 
 echo "已配置镜像加速: ${URL}"
-echo "测试拉取: docker pull eclipse-temurin:21-jre-jammy"
+echo "测试拉取: docker pull eclipse-temurin:25-jre-jammy"
