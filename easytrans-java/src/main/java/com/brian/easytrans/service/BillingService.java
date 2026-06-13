@@ -35,6 +35,7 @@ public class BillingService {
         }
 
         List<BillingProductDto> products = billing.getProducts().stream()
+                .filter(product -> StringUtils.hasText(product.getVariantId()))
                 .filter(product -> StringUtils.hasText(product.getCheckoutUrl()))
                 .map(this::toProductDto)
                 .toList();

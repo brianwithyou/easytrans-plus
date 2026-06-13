@@ -13,6 +13,18 @@ app:
       from: ${RESEND_FROM:}
   billing:
     enabled: ${BILLING_ENABLED:false}
+    free-plan:
+      name: ${BILLING_FREE_PLAN_NAME:基础版}
+      daily-quota: ${BILLING_FREE_PLAN_DAILY_QUOTA:50000}
+    unpaid-plan:
+      name: ${BILLING_UNPAID_PLAN_NAME:未开通}
     lemon-squeezy:
       webhook-secret: ${LEMON_SQUEEZY_WEBHOOK_SECRET:}
       allow-test-mode: ${BILLING_ALLOW_TEST_MODE:true}
+    products:
+      - variant-id: ${BILLING_VARIANT_ID:}
+        plan-name: ${BILLING_PLAN_NAME:基础版}
+        daily-quota: ${BILLING_DAILY_QUOTA:500000}
+        duration-days: ${BILLING_DURATION_DAYS:30}
+        label: ${BILLING_PRODUCT_LABEL:基础版（1个月）}
+        checkout-url: ${BILLING_CHECKOUT_URL:}

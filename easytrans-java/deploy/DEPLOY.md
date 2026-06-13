@@ -225,7 +225,7 @@ curl -X POST https://api.yourdomain.com/api/v1/auth/login \
 
 - [ ] 移除客户端中尚未实现的 **License 激活** UI
 - [ ] 管理后台（用户封禁、改配额）
-- [ ] Lemon Squeezy 计费：`BILLING_ENABLED=true` 时基础版收费（未购买不可翻译）；`false` 时基础版免费。配置 `app.billing.products`、执行 `sql/04_billing.sql`、Webhook `POST /api/v1/billing/webhook`
+- [ ] Lemon Squeezy 计费：在 `deploy/.env` 配置 `BILLING_*`（无需 `application-local.yaml`）；收费模式执行 `sql/04_billing.sql`；Lemon Webhook → `POST /api/v1/billing/webhook`
 - [ ] CI 自动构建镜像
 
 ---
