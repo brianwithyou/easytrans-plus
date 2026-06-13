@@ -18,7 +18,7 @@ fi
 
 if [[ ! -f .env ]]; then
   cp .env.example .env
-  echo "已生成 deploy/.env，请先编辑其中的密码和 API Key，然后重新运行本脚本。"
+  echo "已生成 deploy/.env，请先编辑其中的 MySQL、JWT、LLM Key，然后重新运行本脚本。"
   exit 1
 fi
 
@@ -30,8 +30,8 @@ if [[ -z "${JWT_SECRET:-}" || "${JWT_SECRET}" == change-me* ]]; then
   exit 1
 fi
 
-if [[ -z "${MYSQL_ROOT_PASSWORD:-}" || "${MYSQL_ROOT_PASSWORD}" == change-me* ]]; then
-  echo "错误: 请在 deploy/.env 中设置 MYSQL_ROOT_PASSWORD。"
+if [[ -z "${MYSQL_PASSWORD:-}" || "${MYSQL_PASSWORD}" == change-me* ]]; then
+  echo "错误: 请在 deploy/.env 中设置 MYSQL_PASSWORD（你的 MySQL 8 密码）。"
   exit 1
 fi
 
@@ -39,19 +39,27 @@ if [[ -z "${DASHSCOPE_API_KEY:-}${MIMO_API_KEY:-}${DEEPSEEK_API_KEY:-}" ]]; then
   echo "警告: 未配置任何 LLM API Key，翻译接口将无法工作。"
 fi
 
+COMPOSE_FILES=(-f docker-compose.yml)
+if [[ -n "${MYSQL_DOCKER_NETWORK:-}" ]]; then
+  COMPOSE_FILES+=(-f docker-compose.mysql-network.yml)
+  echo "==> 使用外部 Docker 网络: ${MYSQL_DOCKER_NETWORK}"
+  echo "    MYSQL_HOST=${MYSQL_HOST:-?}"
+fi
+
 echo "==> 构建并启动 EasyTrans Plus API ..."
-docker compose up -d --build
+docker compose "${COMPOSE_FILES[@]}" up -d --build
 
 echo
 echo "==> 等待健康检查 ..."
 for i in {1..30}; do
   if curl -fsS "http://127.0.0.1:${API_PORT:-9091}/api/v1/health" >/dev/null 2>&1; then
     echo "服务已就绪: http://127.0.0.1:${API_PORT:-9091}/api/v1/health"
-    docker compose ps
+    docker compose "${COMPOSE_FILES[@]}" ps
     exit 0
   fi
   sleep 2
 done
 
-echo "服务启动超时，请查看日志: docker compose -f ${DEPLOY_DIR}/docker-compose.yml logs -f api"
+echo "服务启动超时，请查看日志:"
+echo "  docker compose ${COMPOSE_FILES[*]} logs -f api"
 exit 1

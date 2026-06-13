@@ -14,7 +14,7 @@ macOS 客户端 (EasyTrans Plus)
    easytrans-api :9091  (Docker)
         │
         ▼
-   MySQL 8.4           (Docker)
+   已有 MySQL 8 容器 / 宿主机 3306
 ```
 
 ---
@@ -64,9 +64,49 @@ nano .env
 
 | 变量 | 说明 |
 |------|------|
-| `MYSQL_ROOT_PASSWORD` | MySQL root 密码 |
+| `MYSQL_PASSWORD` | 你的 MySQL 8 密码 |
+| `MYSQL_HOST` | 默认 `host.docker.internal`（MySQL 映射到宿主机 3306 时） |
 | `JWT_SECRET` | JWT 密钥，至少 32 位随机字符串 |
 | `DASHSCOPE_API_KEY` / `MIMO_API_KEY` / `DEEPSEEK_API_KEY` | 至少填一个 LLM Key |
+
+### 3.1 使用本机已有 MySQL 8 容器
+
+**方式 A（最常见）**：MySQL 容器已 `-p 3306:3306` 映射到宿主机
+
+`.env` 保持：
+
+```env
+MYSQL_HOST=host.docker.internal
+MYSQL_PORT=3306
+MYSQL_DATABASE=easytrans
+MYSQL_USERNAME=root
+MYSQL_PASSWORD=你的mysql密码
+```
+
+在 MySQL 中创建库并导入表结构（只需一次）：
+
+```bash
+# 若宿主机有 mysql 客户端
+mysql -h 127.0.0.1 -P 3306 -uroot -p < ../sql/01_schema.sql
+
+# 或进入你的 MySQL 容器
+docker exec -i <mysql容器名> mysql -uroot -p你的密码 < ../sql/01_schema.sql
+```
+
+**方式 B**：API 与 MySQL 在同一 Docker 网络（未映射宿主机端口时）
+
+```bash
+# 查看 MySQL 容器名和网络
+docker ps
+docker inspect <mysql容器名> --format '{{json .NetworkSettings.Networks}}'
+
+# .env 增加：
+# MYSQL_HOST=<mysql容器名>
+# MYSQL_PORT=3306
+# MYSQL_DOCKER_NETWORK=<网络名>
+
+docker compose -f docker-compose.yml -f docker-compose.mysql-network.yml up -d --build
+```
 
 生成随机 JWT：
 
