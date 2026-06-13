@@ -47,6 +47,9 @@ DATASOURCE_URL="jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?useUn
 IMAGE_NAME="${IMAGE_NAME:-easytrans-api:latest}"
 CONTAINER_NAME="${CONTAINER_NAME:-easytrans-api}"
 
+# shellcheck source=docker-app-env.sh
+source "${DEPLOY_DIR}/scripts/docker-app-env.sh"
+
 echo "==> 构建镜像 ${IMAGE_NAME} ..."
 docker build -t "${IMAGE_NAME}" -f "${DEPLOY_DIR}/Dockerfile" "${JAVA_DIR}"
 
@@ -57,20 +60,8 @@ RUN_ARGS=(
   -d
   --name "${CONTAINER_NAME}"
   --restart unless-stopped
-  -e "SPRING_PROFILES_ACTIVE=prod"
-  -e "TZ=Asia/Shanghai"
-  -e "JWT_SECRET=${JWT_SECRET}"
-  -e "MYSQL_USERNAME=${MYSQL_USERNAME}"
-  -e "MYSQL_PASSWORD=${MYSQL_PASSWORD}"
-  -e "SPRING_DATASOURCE_URL=${DATASOURCE_URL}"
-  -e "DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-}"
-  -e "MIMO_API_KEY=${MIMO_API_KEY:-}"
-  -e "DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}"
-  -e "EMAIL_DEV_MODE=${EMAIL_DEV_MODE:-false}"
-  -e "RESEND_API_KEY=${RESEND_API_KEY:-}"
-  -e "RESEND_FROM=${RESEND_FROM:-}"
-  -e "APP_CORS_ALLOWED_ORIGINS=${APP_CORS_ALLOWED_ORIGINS:-*}"
 )
+append_docker_app_env RUN_ARGS
 
 # 日志持久化：默认 Docker 卷；或 .env 设置 LOG_HOST_PATH=/var/log/easytrans
 if [[ -n "${LOG_HOST_PATH:-}" ]]; then

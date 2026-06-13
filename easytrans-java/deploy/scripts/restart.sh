@@ -19,8 +19,8 @@ restart_compose() {
 }
 
 if docker ps -a --format '{{.Names}}' | grep -qx "${CONTAINER_NAME}"; then
-  echo "==> 重启容器 ${CONTAINER_NAME} ..."
-  docker restart "${CONTAINER_NAME}"
+  echo "==> 重新创建容器 ${CONTAINER_NAME}（以加载最新 .env）..."
+  "${DEPLOY_DIR}/scripts/deploy-prebuilt.sh"
 elif command -v compose >/dev/null 2>&1 || command -v docker-compose >/dev/null 2>&1; then
   echo "==> 通过 compose 重启 api ..."
   restart_compose
