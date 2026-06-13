@@ -35,7 +35,7 @@ struct MenuBarContent: View {
 
         Divider()
 
-        Button("退出 EasyTrans Pro") {
+        Button("退出 EasyTrans Plus") {
             NSApp.terminate(nil)
         }
     }
@@ -43,6 +43,7 @@ struct MenuBarContent: View {
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        KeychainStore.migrateIfNeeded()
         DockVisibility.hideFromDock()
 
         NotificationCenter.default.addObserver(
@@ -95,7 +96,7 @@ struct EasyTransApp: App {
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 900, height: 640)
 
-        MenuBarExtra("EasyTrans Pro", systemImage: "character.bubble") {
+        MenuBarExtra("EasyTrans Plus", systemImage: "character.bubble") {
             MenuBarContent()
         }
         .menuBarExtraStyle(.menu)

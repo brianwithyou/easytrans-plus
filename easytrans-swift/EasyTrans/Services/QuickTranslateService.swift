@@ -322,12 +322,12 @@ final class QuickTranslateService: NSObject {
 
         if registrationStatus.isReady {
             showNotification(
-                title: "EasyTrans Pro 快捷键已就绪",
+                title: "EasyTrans Plus 快捷键已就绪",
                 body: "\(registrationStatus.summary)\n选中文字后按 ⌘⇧D 翻译"
             )
         } else {
             showNotification(
-                title: "EasyTrans Pro 快捷键未就绪",
+                title: "EasyTrans Plus 快捷键未就绪",
                 body: "请授权辅助功能后点击设置中的「刷新状态」，或使用菜单栏图标翻译"
             )
         }
@@ -349,7 +349,7 @@ final class QuickTranslateService: NSObject {
             let hint = settings.translationMode == .byok
                 ? "请先在设置中配置 DashScope API Key"
                 : "请先在设置中登录云端服务"
-            showNotification(title: "EasyTrans Pro", body: hint)
+            showNotification(title: "EasyTrans Plus", body: hint)
             return
         }
 

@@ -707,7 +707,7 @@ final class ClipboardHistoryService: NSObject {
 
         guard AccessibilityHelper.isTrusted else {
             logger.error("Paste requires accessibility permission")
-            presentPasteFailureAlert("需要「辅助功能」权限才能粘贴到原应用。请在系统设置中授权 EasyTrans Pro。")
+            presentPasteFailureAlert("需要「辅助功能」权限才能粘贴到原应用。请在系统设置中授权 EasyTrans Plus。")
             return
         }
 

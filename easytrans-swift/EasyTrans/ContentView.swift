@@ -43,7 +43,7 @@ struct ContentView: View {
             Image(systemName: "character.bubble")
                 .font(.title2)
                 .foregroundStyle(.blue)
-            Text("EasyTrans Pro")
+            Text("EasyTrans Plus")
                 .font(.title2.weight(.semibold))
             Spacer()
             if !settings.isConfigured {

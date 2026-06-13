@@ -1,4 +1,4 @@
-# EasyTrans Pro
+# EasyTrans Plus
 
 EasyTrans 商业版，基于开源版 [easytrans](https://github.com/brianwithyou/easytrans)  fork 开发。
 
@@ -9,7 +9,7 @@ macOS 菜单栏翻译工具，通过阿里云 DashScope 调用通义千问（Qwe
 | 项目 | 开源版 (`easytrans`) | 商业版 (`easytrans-pro`) |
 |------|----------------------|--------------------------|
 | 目录 | `easytrans/` | `easytrans-pro/` |
-| 应用名称 | EasyTrans | EasyTrans Pro |
+| 应用名称 | EasyTrans | EasyTrans Plus |
 | Bundle ID | `com.easytrans.app` | `com.easytrans.pro` |
 | 数据目录 | `~/Library/Application Support/com.easytrans.app/` | `~/Library/Application Support/com.easytrans.pro/` |
 | Git 仓库 | 独立开源仓库 | 独立商业仓库（私有） |
@@ -29,7 +29,7 @@ cd easytrans-pro
 open EasyTrans.xcodeproj
 ```
 
-在 Xcode 中按 `⌘ + R` 运行，打开 **EasyTrans Pro → Settings…**（`⌘ + ,`）配置 API Key。
+在 Xcode 中按 `⌘ + R` 运行，打开 **EasyTrans Plus → Settings…**（`⌘ + ,`）配置 API Key。
 
 命令行构建：
 
@@ -37,7 +37,7 @@ open EasyTrans.xcodeproj
 xcodebuild -scheme EasyTrans -configuration Release -destination 'platform=macOS' build
 ```
 
-产物：`build/Release/EasyTrans.app`（显示名称为 EasyTrans Pro）
+产物：`build/Release/EasyTrans.app`（显示名称为 EasyTrans Plus）
 
 ## 文档
 

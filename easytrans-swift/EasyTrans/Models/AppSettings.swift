@@ -84,7 +84,7 @@ final class AppSettings: ObservableObject {
         apiKey = defaults.string(forKey: Keys.apiKey) ?? ""
         model = defaults.string(forKey: Keys.model) ?? "qwen-plus"
         baseURL = defaults.string(forKey: Keys.baseURL) ?? "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        cloudBaseURL = defaults.string(forKey: Keys.cloudBaseURL) ?? "http://127.0.0.1:8080"
+        cloudBaseURL = defaults.string(forKey: Keys.cloudBaseURL) ?? "http://127.0.0.1:9091"
         sourceLanguage = .english
         targetLanguage = Self.normalizedTargetLanguage(
             Language(rawValue: defaults.string(forKey: Keys.targetLanguage) ?? "") ?? .chinese

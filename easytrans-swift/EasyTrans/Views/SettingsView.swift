@@ -40,7 +40,7 @@ struct SettingsView: View {
                 Section("通用") {
                     Toggle("登录时自动启动", isOn: $settings.launchAtLogin)
 
-                    Text("EasyTrans Pro 常驻菜单栏，不会在 Dock 中显示图标。可在「系统设置 → 通用 → 登录项」中管理开机启动。")
+π                    Text("EasyTrans Plus 常驻菜单栏，不会在 Dock 中显示图标。可在「系统设置 → 通用 → 登录项」中管理开机启动。")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -68,7 +68,7 @@ struct SettingsView: View {
         case .byok:
             return "使用你自己的 DashScope API Key，翻译请求直连阿里云，不经由商业服务器。"
         case .cloud:
-            return "登录云端账号后，由 EasyTrans Pro 服务端代理翻译并管理套餐与配额。"
+            return "登录云端账号后，由 EasyTrans Plus 服务端代理翻译并管理套餐与配额。"
         }
     }
 
@@ -180,7 +180,7 @@ struct SettingsView: View {
                 }
             }
 
-            Text("在其他应用中选中文字并翻译，需要辅助功能权限。EasyTrans Pro 窗口内选中文字翻译不需要此权限。")
+            Text("在其他应用中选中文字并翻译，需要辅助功能权限。EasyTrans Plus 窗口内选中文字翻译不需要此权限。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -195,11 +195,11 @@ struct SettingsView: View {
             }
 
             if !accessibilityTrusted {
-                Text("授权后请完全退出 EasyTrans Pro（⌘Q）再重新打开，系统才会生效。若列表里已有 EasyTrans Pro 但仍显示未授权，请删除旧条目，用「在 Finder 中显示应用」拖入新的 EasyTrans Pro.app。")
+                Text("授权后请完全退出 EasyTrans Plus（⌘Q）再重新打开，系统才会生效。若列表里已有 EasyTrans Plus 但仍显示未授权，请删除旧条目，用「在 Finder 中显示应用」拖入新的 EasyTrans Plus.app。")
                     .font(.caption)
                     .foregroundStyle(Color.orange)
 
-                Text("添加权限时找不到 Library 文件夹？macOS 默认隐藏它。请用下方「在 Finder 中显示应用」，把弹出的 EasyTrans Pro 直接拖进辅助功能列表。")
+                Text("添加权限时找不到 Library 文件夹？macOS 默认隐藏它。请用下方「在 Finder 中显示应用」，把弹出的 EasyTrans Plus 直接拖进辅助功能列表。")
                     .font(.caption)
                     .foregroundStyle(Color.orange)
             }
