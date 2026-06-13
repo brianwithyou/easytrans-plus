@@ -2,6 +2,9 @@
 set -euo pipefail
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=compose.sh
+source "${DEPLOY_DIR}/scripts/compose.sh"
+
 cd "${DEPLOY_DIR}"
 
 if [[ ! -f .env ]]; then
@@ -18,12 +21,12 @@ if [[ -n "${MYSQL_DOCKER_NETWORK:-}" ]]; then
 fi
 
 echo "==> 停止服务 ..."
-docker compose "${COMPOSE_FILES[@]}" down
+compose "${COMPOSE_FILES[@]}" down
 
 echo "==> 拉取基础镜像并重新构建 ..."
-docker compose "${COMPOSE_FILES[@]}" build --pull
+compose "${COMPOSE_FILES[@]}" build --pull
 
 echo "==> 启动服务 ..."
-docker compose "${COMPOSE_FILES[@]}" up -d
+compose "${COMPOSE_FILES[@]}" up -d
 
 echo "==> 完成。健康检查: curl http://127.0.0.1:${API_PORT:-9091}/api/v1/health"

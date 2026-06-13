@@ -1,0 +1,18 @@
+# 当 MySQL 容器与 API 在同一 Docker 网络时使用（不用宿主机端口映射）
+# 用法:
+#   docker compose -f docker-compose.yml -f docker-compose.mysql-network.yml up -d --build
+#
+# .env 示例:
+#   MYSQL_DOCKER_NETWORK=你的mysql所在网络名
+#   MYSQL_HOST=你的mysql容器名或服务名
+#   MYSQL_PORT=3306
+
+services:
+  api:
+    networks:
+      - mysql-net
+
+networks:
+  mysql-net:
+    external: true
+    name: ${MYSQL_DOCKER_NETWORK:?set MYSQL_DOCKER_NETWORK in .env}

@@ -2,16 +2,13 @@
 set -euo pipefail
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=compose.sh
+source "${DEPLOY_DIR}/scripts/compose.sh"
 
 cd "${DEPLOY_DIR}"
 
 if ! command -v docker >/dev/null 2>&1; then
   echo "错误: 未找到 docker，请先安装 Docker。"
-  exit 1
-fi
-
-if ! docker compose version >/dev/null 2>&1; then
-  echo "错误: 未找到 docker compose 插件。"
   exit 1
 fi
 
@@ -46,19 +43,19 @@ if [[ -n "${MYSQL_DOCKER_NETWORK:-}" ]]; then
 fi
 
 echo "==> 构建并启动 EasyTrans Plus API ..."
-docker compose "${COMPOSE_FILES[@]}" up -d --build
+compose "${COMPOSE_FILES[@]}" up -d --build
 
 echo
 echo "==> 等待健康检查 ..."
 for i in {1..30}; do
   if curl -fsS "http://127.0.0.1:${API_PORT:-9091}/api/v1/health" >/dev/null 2>&1; then
     echo "服务已就绪: http://127.0.0.1:${API_PORT:-9091}/api/v1/health"
-    docker compose "${COMPOSE_FILES[@]}" ps
+    compose "${COMPOSE_FILES[@]}" ps
     exit 0
   fi
   sleep 2
 done
 
 echo "服务启动超时，请查看日志:"
-echo "  docker compose ${COMPOSE_FILES[*]} logs -f api"
+echo "  cd ${DEPLOY_DIR} && compose ${COMPOSE_FILES[*]} logs -f api"
 exit 1

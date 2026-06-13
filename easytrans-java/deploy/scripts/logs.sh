@@ -2,6 +2,9 @@
 set -euo pipefail
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=compose.sh
+source "${DEPLOY_DIR}/scripts/compose.sh"
+
 cd "${DEPLOY_DIR}"
 
 # shellcheck disable=SC1091
@@ -12,4 +15,4 @@ if [[ -n "${MYSQL_DOCKER_NETWORK:-}" ]]; then
   COMPOSE_FILES+=(-f docker-compose.mysql-network.yml)
 fi
 
-docker compose "${COMPOSE_FILES[@]}" logs -f --tail=200 api
+compose "${COMPOSE_FILES[@]}" logs -f --tail=200 api
