@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 FROM maven:3.9.16-eclipse-temurin-25 AS build
 
 WORKDIR /workspace
@@ -7,10 +8,12 @@ COPY deploy/maven/settings.xml /root/.m2/settings.xml
 
 # 先只复制 pom，缓存依赖层
 COPY pom.xml .
-RUN mvn -B -DskipTests dependency:go-offline
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn -B -DskipTests dependency:go-offline
 
 COPY src ./src
-RUN mvn -B -DskipTests package
+RUN --mount=type=cache,target=/root/.m2/repository \
+    mvn -B -DskipTests package
 
 FROM eclipse-temurin:25-jre-jammy
 

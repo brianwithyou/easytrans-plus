@@ -51,6 +51,7 @@ CONTAINER_NAME="${CONTAINER_NAME:-easytrans-api}"
 source "${DEPLOY_DIR}/scripts/docker-app-env.sh"
 
 echo "==> 构建镜像 ${IMAGE_NAME} ..."
+export DOCKER_BUILDKIT=1
 docker build -t "${IMAGE_NAME}" -f "${DEPLOY_DIR}/Dockerfile" "${JAVA_DIR}"
 
 echo "==> 停止旧容器（若存在）..."

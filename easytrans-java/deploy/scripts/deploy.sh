@@ -43,6 +43,7 @@ if [[ -n "${MYSQL_DOCKER_NETWORK:-}" ]]; then
 fi
 
 echo "==> 构建并启动 EasyTrans Plus API ..."
+export DOCKER_BUILDKIT=1
 compose "${COMPOSE_FILES[@]}" up -d --build
 
 echo

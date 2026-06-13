@@ -24,7 +24,11 @@ echo "==> 停止服务 ..."
 compose "${COMPOSE_FILES[@]}" down
 
 echo "==> 拉取基础镜像并重新构建 ..."
-compose "${COMPOSE_FILES[@]}" build --pull
+if [[ "${BUILD_PULL:-false}" == "true" ]]; then
+  compose "${COMPOSE_FILES[@]}" build --pull
+else
+  compose "${COMPOSE_FILES[@]}" build
+fi
 
 echo "==> 启动服务 ..."
 compose "${COMPOSE_FILES[@]}" up -d
