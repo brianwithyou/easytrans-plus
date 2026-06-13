@@ -1,13 +1,17 @@
 package com.brian.easytrans.config;
 
+import com.brian.easytrans.integration.llm.LlmProvider;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.util.StringUtils;
 
 @ConfigurationProperties(prefix = "app")
 public class AppProperties {
 
     private final Jwt jwt = new Jwt();
     private final Cors cors = new Cors();
-    private final Dashscope dashscope = new Dashscope();
+    private final Llm llm = new Llm();
 
     public Jwt getJwt() {
         return jwt;
@@ -17,8 +21,8 @@ public class AppProperties {
         return cors;
     }
 
-    public Dashscope getDashscope() {
-        return dashscope;
+    public Llm getLlm() {
+        return llm;
     }
 
     public static class Jwt {
@@ -63,10 +67,32 @@ public class AppProperties {
         }
     }
 
-    public static class Dashscope {
+    public static class Llm {
+        private List<LlmProviderEntry> providers = new ArrayList<>();
+        private String provider = LlmProvider.DASHSCOPE.getConfigValue();
         private String apiKey;
-        private String baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1";
-        private String model = "qwen-plus";
+        private String baseUrl;
+        private String model;
+
+        public List<LlmProviderEntry> getProviders() {
+            return providers;
+        }
+
+        public void setProviders(List<LlmProviderEntry> providers) {
+            this.providers = providers == null ? new ArrayList<>() : providers;
+        }
+
+        public LlmProvider getProvider() {
+            return LlmProvider.fromConfig(provider);
+        }
+
+        public String getProviderConfig() {
+            return provider;
+        }
+
+        public void setProvider(String provider) {
+            this.provider = provider;
+        }
 
         public String getApiKey() {
             return apiKey;
@@ -90,6 +116,21 @@ public class AppProperties {
 
         public void setModel(String model) {
             this.model = model;
+        }
+
+        public List<LlmProviderEntry> resolveConfiguredProviders() {
+            if (!providers.isEmpty()) {
+                return providers.stream().filter(LlmProviderEntry::isConfigured).toList();
+            }
+            if (StringUtils.hasText(apiKey)) {
+                LlmProviderEntry legacy = new LlmProviderEntry();
+                legacy.setProvider(provider);
+                legacy.setApiKey(apiKey);
+                legacy.setBaseUrl(baseUrl);
+                legacy.setModel(model);
+                return List.of(legacy);
+            }
+            return List.of();
         }
     }
 }

@@ -1,10 +1,24 @@
-# 复制为 application-local.yaml 并填入真实密钥（勿提交到 Git）
+# 复制本文件为 application-local.yaml（同目录），填入真实密钥。
+# application-local.yaml 已被 .gitignore 忽略，启动时会自动加载（无需设置 profile）。
 
 app:
   jwt:
     secret: your-jwt-secret-at-least-32-characters-long
-  dashscope:
-    api-key: sk-your-dashscope-api-key
+  llm:
+    # 按顺序兜底：mimo -> deepseek -> dashscope
+    providers:
+      - provider: mimo
+        api-key: your-mimo-api-key
+        # base-url: https://api.xiaomimimo.com/v1
+        # model: mimo-v2-flash
+      - provider: deepseek
+        api-key: your-deepseek-api-key
+        # base-url: https://api.deepseek.com
+        # model: deepseek-v4-flash
+      - provider: dashscope
+        api-key: sk-your-dashscope-key
+        # base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
+        # model: qwen-plus
 
 spring:
   datasource:

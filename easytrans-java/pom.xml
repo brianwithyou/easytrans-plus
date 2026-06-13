@@ -11,7 +11,7 @@
     <groupId>com.brian</groupId>
     <artifactId>easytrans-java</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>easytrans-api</name>
+    <name>easytrans-java</name>
     <description>EasyTrans Pro backend API</description>
     <properties>
         <java.version>25</java.version>

@@ -10,6 +10,8 @@ import com.brian.easytrans.entity.AppUser;
 import com.brian.easytrans.security.JwtService;
 import com.brian.easytrans.util.AuditFillHelper;
 import java.time.LocalDate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
 
     private final AppUserDao appUserDao;
     private final JwtService jwtService;
@@ -32,6 +36,7 @@ public class AuthService {
     public AuthResultDto register(EmailRegisterRequest request) {
         String email = normalizeEmail(request.getEmail());
         if (appUserDao.existsByEmailAndDeleteFlag(email, DeleteFlagConstants.NOT_DELETED)) {
+            log.warn("auth register failed email={} reason=already_exists", maskEmail(email));
             throw new BusinessException("该邮箱已注册");
         }
 
@@ -47,6 +52,7 @@ public class AuthService {
         AuditFillHelper.fillOnCreate(user, AuditFillHelper.SYSTEM_OPERATOR_ID, AuditFillHelper.SYSTEM_OPERATOR_NAME);
         appUserDao.insert(user);
 
+        log.info("auth register success userId={} email={}", user.getId(), maskEmail(email));
         return buildAuthResult(user);
     }
 
@@ -54,14 +60,19 @@ public class AuthService {
         String email = normalizeEmail(request.getEmail());
         AppUser user = appUserDao
                 .findByEmailAndDeleteFlag(email, DeleteFlagConstants.NOT_DELETED)
-                .orElseThrow(() -> new BusinessException("邮箱或密码错误", HttpStatus.UNAUTHORIZED));
+                .orElseThrow(() -> {
+                    log.warn("auth login failed email={} reason=user_not_found", maskEmail(email));
+                    return new BusinessException("邮箱或密码错误", HttpStatus.UNAUTHORIZED);
+                });
 
         assertActive(user);
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
+            log.warn("auth login failed userId={} email={} reason=bad_password", user.getId(), maskEmail(email));
             throw new BusinessException("邮箱或密码错误", HttpStatus.UNAUTHORIZED);
         }
 
         resetDailyUsageIfNeeded(user);
+        log.info("auth login success userId={} email={}", user.getId(), maskEmail(email));
         return buildAuthResult(user);
     }
 
@@ -73,6 +84,7 @@ public class AuthService {
 
         assertActive(user);
         resetDailyUsageIfNeeded(user);
+        log.info("auth refresh success userId={} email={}", user.getId(), maskEmail(user.getEmail()));
         return buildAuthResult(user);
     }
 
@@ -108,7 +120,19 @@ public class AuthService {
             user.setDailyUsed(0);
             AuditFillHelper.fillOnUpdate(user, user.getId(), "用户");
             appUserDao.update(user);
+            log.info("usage reset userId={} date={}", user.getId(), today);
         }
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return "";
+        }
+        int atIndex = email.indexOf('@');
+        if (atIndex <= 1) {
+            return "***" + email.substring(Math.max(atIndex, 0));
+        }
+        return email.charAt(0) + "***" + email.substring(atIndex);
     }
 
     private String normalizeEmail(String email) {
