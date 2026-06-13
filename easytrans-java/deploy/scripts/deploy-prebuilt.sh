@@ -30,6 +30,11 @@ MYSQL_HOST="${MYSQL_HOST:-host.docker.internal}"
 MYSQL_PORT="${MYSQL_PORT:-3306}"
 MYSQL_DATABASE="${MYSQL_DATABASE:-easytrans}"
 MYSQL_USERNAME="${MYSQL_USERNAME:-root}"
+
+if [[ "${USE_HOST_NETWORK:-false}" == "true" ]]; then
+  [[ "${MYSQL_HOST}" == "host.docker.internal" ]] && MYSQL_HOST="127.0.0.1"
+fi
+
 DATASOURCE_URL="jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai"
 IMAGE_NAME="${IMAGE_NAME:-easytrans-api:latest}"
 CONTAINER_NAME="${CONTAINER_NAME:-easytrans-api}"
@@ -42,7 +47,6 @@ docker rm -f "${CONTAINER_NAME}" 2>/dev/null || true
 
 RUN_ARGS=(
   -d --name "${CONTAINER_NAME}" --restart unless-stopped
-  -p "${API_PORT}:9091"
   -e "SPRING_PROFILES_ACTIVE=prod" -e "TZ=Asia/Shanghai"
   -e "JWT_SECRET=${JWT_SECRET}"
   -e "MYSQL_USERNAME=${MYSQL_USERNAME}" -e "MYSQL_PASSWORD=${MYSQL_PASSWORD}"
@@ -53,14 +57,26 @@ RUN_ARGS=(
   -e "APP_CORS_ALLOWED_ORIGINS=${APP_CORS_ALLOWED_ORIGINS:-*}"
 )
 
-if [[ "${MYSQL_HOST}" == "host.docker.internal" ]]; then
-  if docker run --help 2>&1 | grep -q host-gateway; then
-    RUN_ARGS+=(--add-host=host.docker.internal:host-gateway)
-  else
-    RUN_ARGS+=(--add-host=host.docker.internal:172.17.0.1)
-  fi
+if [[ -n "${LOG_HOST_PATH:-}" ]]; then
+  mkdir -p "${LOG_HOST_PATH}"
+  RUN_ARGS+=(-v "${LOG_HOST_PATH}:/app/logs")
+else
+  RUN_ARGS+=(-v "${LOG_VOLUME_NAME:-easytrans-api-logs}:/app/logs")
 fi
-[[ -n "${MYSQL_DOCKER_NETWORK:-}" ]] && RUN_ARGS+=(--network "${MYSQL_DOCKER_NETWORK}")
+
+if [[ "${USE_HOST_NETWORK:-false}" == "true" ]]; then
+  RUN_ARGS+=(--network host)
+else
+  RUN_ARGS+=(-p "${API_PORT}:9091")
+  if [[ "${MYSQL_HOST}" == "host.docker.internal" ]]; then
+    if docker run --help 2>&1 | grep -q host-gateway; then
+      RUN_ARGS+=(--add-host=host.docker.internal:host-gateway)
+    else
+      RUN_ARGS+=(--add-host=host.docker.internal:172.17.0.1)
+    fi
+  fi
+  [[ -n "${MYSQL_DOCKER_NETWORK:-}" ]] && RUN_ARGS+=(--network "${MYSQL_DOCKER_NETWORK}")
+fi
 
 docker run "${RUN_ARGS[@]}" "${IMAGE_NAME}"
 

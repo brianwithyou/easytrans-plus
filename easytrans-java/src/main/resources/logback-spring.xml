@@ -2,8 +2,15 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 
-    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="easytrans-api"/>
-    <property name="LOG_PATH" value="${user.home}/${APP_NAME}/logs"/>
+    <springProperty scope="context" name="APP_NAME" source="spring.application.name" defaultValue="easytrans"/>
+
+    <springProfile name="prod">
+        <property name="LOG_PATH" value="/app/logs"/>
+    </springProfile>
+    <springProfile name="!prod">
+        <property name="LOG_PATH" value="${user.home}/${APP_NAME}/logs"/>
+    </springProfile>
+
     <property name="LOG_FILE" value="${LOG_PATH}/${APP_NAME}.log"/>
 
     <property name="LOG_PATTERN"
