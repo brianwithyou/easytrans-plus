@@ -15,7 +15,8 @@ RUN mvn -B -DskipTests package
 FROM eclipse-temurin:25-jre-jammy
 
 WORKDIR /app
-RUN useradd --system --uid 10001 --gid 10001 --create-home --home-dir /app --shell /usr/sbin/nologin easytrans \
+RUN groupadd --system --gid 10001 easytrans \
+    && useradd --system --uid 10001 --gid easytrans --create-home --home-dir /app --shell /usr/sbin/nologin easytrans \
     && mkdir -p /app/logs \
     && apt-get update \
     && apt-get install -y --no-install-recommends curl gosu \
