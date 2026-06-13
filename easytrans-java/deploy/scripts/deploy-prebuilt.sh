@@ -58,7 +58,7 @@ docker rm -f "${CONTAINER_NAME}" 2>/dev/null || true
 RUN_ARGS=(
   -d --name "${CONTAINER_NAME}" --restart unless-stopped
 )
-append_docker_app_env RUN_ARGS
+append_docker_app_env
 
 if [[ -n "${LOG_HOST_PATH:-}" ]]; then
   mkdir -p "${LOG_HOST_PATH}"

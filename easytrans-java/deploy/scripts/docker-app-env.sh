@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # 供 deploy-prebuilt.sh / deploy-docker.sh 共用：把 .env 中的应用配置传给 docker run
-# 用法：source 本文件后调用 append_docker_app_env RUN_ARGS
+# 用法：先定义 RUN_ARGS=(...) 数组，再 source 本文件并调用 append_docker_app_env
+# 兼容 CentOS 7 / bash 4.2（不使用 local -n）
 
 append_docker_app_env() {
-  local -n _run_args=$1
-
-  _run_args+=(
+  RUN_ARGS+=(
     -e "SPRING_PROFILES_ACTIVE=prod"
     -e "TZ=Asia/Shanghai"
     -e "JWT_SECRET=${JWT_SECRET}"
