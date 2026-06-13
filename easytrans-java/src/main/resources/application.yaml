@@ -56,3 +56,14 @@ app:
     resend:
       api-key: ${RESEND_API_KEY:}
       from: ${RESEND_FROM:EasyTrans <onboarding@resend.dev>}
+  billing:
+    enabled: ${BILLING_ENABLED:false}
+    free-plan:
+      name: 基础版
+      daily-quota: 50000
+    unpaid-plan:
+      name: 未开通
+    lemon-squeezy:
+      webhook-secret: ${LEMON_SQUEEZY_WEBHOOK_SECRET:}
+      allow-test-mode: ${BILLING_ALLOW_TEST_MODE:true}
+    products: []

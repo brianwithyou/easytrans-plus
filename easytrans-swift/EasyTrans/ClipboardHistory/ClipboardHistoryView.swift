@@ -4,6 +4,7 @@ import SwiftUI
 /// 剪贴板历史浮层内容（列表区域）；搜索框由 `ClipboardHistoryPanelRootView` 以 AppKit 方式承载。
 struct ClipboardHistoryView: View {
     @ObservedObject var store: ClipboardHistoryStore
+    @ObservedObject private var shortcutSettings = KeyboardShortcutSettings.shared
     var onPaste: (ClipboardHistoryItem) -> Void
     var onDismiss: () -> Void
 
@@ -115,12 +116,14 @@ struct ClipboardHistoryView: View {
 
             Spacer()
 
-            Text("⌘⇧V")
-                .font(.caption.monospaced())
-                .foregroundStyle(.tertiary)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 3)
-                .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+            KeyboardShortcutLabel(
+                shortcut: shortcutSettings.clipboardHistoryShortcut,
+                keySpacing: 4
+            )
+            .foregroundStyle(.tertiary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(Color.primary.opacity(0.05), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)

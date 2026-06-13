@@ -26,16 +26,19 @@ public class AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final EmailCodeService emailCodeService;
+    private final PlanService planService;
 
     public AuthService(
             AppUserDao appUserDao,
             JwtService jwtService,
             PasswordEncoder passwordEncoder,
-            EmailCodeService emailCodeService) {
+            EmailCodeService emailCodeService,
+            PlanService planService) {
         this.appUserDao = appUserDao;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.emailCodeService = emailCodeService;
+        this.planService = planService;
     }
 
     @Transactional
@@ -52,8 +55,11 @@ public class AuthService {
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setNickname(extractNickname(email));
-        user.setPlanName("标准版");
-        user.setDailyQuota(50000);
+        if (planService.isBillingEnabled()) {
+            planService.applyUnpaidState(user);
+        } else {
+            planService.applyFreePlan(user);
+        }
         user.setDailyUsed(0);
         user.setUsageResetDate(LocalDate.now());
         user.setStatus(1);
@@ -80,6 +86,7 @@ public class AuthService {
         }
 
         resetDailyUsageIfNeeded(user);
+        planService.syncPlanState(user);
         log.info("auth login success userId={} email={}", user.getId(), maskEmail(email));
         return buildAuthResult(user);
     }
@@ -92,6 +99,7 @@ public class AuthService {
 
         assertActive(user);
         resetDailyUsageIfNeeded(user);
+        planService.syncPlanState(user);
         log.info("auth refresh success userId={} email={}", user.getId(), maskEmail(user.getEmail()));
         return buildAuthResult(user);
     }
@@ -103,13 +111,14 @@ public class AuthService {
 
         assertActive(user);
         resetDailyUsageIfNeeded(user);
-        return UserDtoMapper.toMeResponse(user);
+        planService.syncPlanState(user);
+        return UserDtoMapper.toMeResponse(user, planService);
     }
 
     private AuthResultDto buildAuthResult(AppUser user) {
         String accessToken = jwtService.generateAccessToken(user.getId());
         String refreshToken = jwtService.generateRefreshToken(user.getId());
-        return new AuthResultDto(accessToken, refreshToken, UserDtoMapper.toAuthUserDto(user));
+        return new AuthResultDto(accessToken, refreshToken, UserDtoMapper.toAuthUserDto(user, planService));
     }
 
     private void assertActive(AppUser user) {

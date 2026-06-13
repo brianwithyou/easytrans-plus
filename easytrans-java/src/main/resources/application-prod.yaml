@@ -11,3 +11,8 @@ app:
     resend:
       api-key: ${RESEND_API_KEY:}
       from: ${RESEND_FROM:}
+  billing:
+    enabled: ${BILLING_ENABLED:false}
+    lemon-squeezy:
+      webhook-secret: ${LEMON_SQUEEZY_WEBHOOK_SECRET:}
+      allow-test-mode: ${BILLING_ALLOW_TEST_MODE:true}

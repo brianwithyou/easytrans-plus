@@ -13,7 +13,7 @@ public class DevEmailGateway implements EmailGateway {
 
     @Override
     public void sendVerificationCode(String email, String scene, String code) {
-        log.info("[dev-email] email={}, scene={}, code={}", maskEmail(email), scene, code);
+        log.warn("[dev-email] DEV MODE — email NOT sent to mailbox. email={} scene={} code={}", maskEmail(email), scene, code);
     }
 
     private String maskEmail(String email) {

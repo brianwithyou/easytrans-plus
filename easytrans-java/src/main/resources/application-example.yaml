@@ -26,6 +26,25 @@ app:
       api-key: re_your_resend_api_key
       from: EasyTrans <onboarding@resend.dev>
 
+  # billing.enabled=false → 基础版免费；true → 必须购买 products 中的基础版后才能翻译
+  billing:
+    enabled: false
+    free-plan:
+      name: 基础版
+      daily-quota: 50000
+    unpaid-plan:
+      name: 未开通
+    lemon-squeezy:
+      webhook-secret: your-webhook-signing-secret
+      allow-test-mode: true
+    products:
+      - variant-id: "123456"
+        plan-name: 基础版
+        daily-quota: 500000
+        duration-days: 30
+        label: 基础版（1个月）
+        checkout-url: https://your-store.lemonsqueezy.com/checkout/buy/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+
 spring:
   datasource:
     username: root

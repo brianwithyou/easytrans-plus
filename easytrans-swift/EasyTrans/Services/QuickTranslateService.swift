@@ -72,7 +72,7 @@ private func easyTransEventTapCallback(
     Task { @MainActor in
         QuickTranslateService.shared.onHotkeyPressed()
     }
-    return Unmanaged.passUnretained(event)
+    return nil
 }
 
 final class QuickTranslateService: NSObject {
@@ -89,6 +89,7 @@ final class QuickTranslateService: NSObject {
     private var translateTask: Task<Void, Never>?
     private var lastTriggerTime: TimeInterval = 0
     private var didReportStartup = false
+    private var didStart = false
     private(set) var lastOtherAppPID: pid_t?
 
     private(set) var registrationStatus = HotkeyRegistrationStatus()
@@ -99,9 +100,12 @@ final class QuickTranslateService: NSObject {
 
     @MainActor
     func start() {
-        NSApp.setActivationPolicy(.regular)
+        guard !didStart else { return }
+        didStart = true
+
         requestNotificationPermission()
         observeOtherApplications()
+        observeShortcutChanges()
         registerAllHotkeyListeners()
         logger.info("Started — \(self.registrationStatus.summary, privacy: .public)")
         reportStartupIfNeeded()
@@ -138,9 +142,28 @@ final class QuickTranslateService: NSObject {
     @MainActor
     private func registerAllHotkeyListeners() {
         registrationStatus = HotkeyRegistrationStatus()
-        registerCarbonHotkey()
-        registerEventMonitors()
         installEventTap()
+
+        if registrationStatus.eventTapOK {
+            registerLocalMonitorOnly()
+        } else {
+            registerCarbonHotkey()
+            registerEventMonitors()
+        }
+    }
+
+    @MainActor
+    private func registerLocalMonitorOnly() {
+        unregisterEventMonitors()
+
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            guard QuickTranslateService.matchesHotkey(event) else { return event }
+            Task { @MainActor in
+                QuickTranslateService.shared.onHotkeyPressed()
+            }
+            return nil
+        }
+        registrationStatus.localMonitorOK = localMonitor != nil
     }
 
     @MainActor
@@ -152,6 +175,19 @@ final class QuickTranslateService: NSObject {
 
     private func requestNotificationPermission() {
         UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { _, _ in }
+    }
+
+    @MainActor
+    private func observeShortcutChanges() {
+        NotificationCenter.default.addObserver(
+            forName: .keyboardShortcutsDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.refreshListeners()
+            }
+        }
     }
 
     @MainActor
@@ -192,10 +228,11 @@ final class QuickTranslateService: NSObject {
             return
         }
 
+        let shortcut = KeyboardShortcutPersistence.translateShortcut()
         let hotKeyID = EventHotKeyID(signature: OSType(0x4554_5154), id: 1)
         let registerStatus = RegisterEventHotKey(
-            UInt32(kVK_ANSI_D),
-            UInt32(cmdKey | shiftKey),
+            UInt32(shortcut.keyCode),
+            shortcut.carbonModifierFlags,
             hotKeyID,
             GetApplicationEventTarget(),
             0,
@@ -222,21 +259,16 @@ final class QuickTranslateService: NSObject {
 
     @MainActor
     private func registerEventMonitors() {
-        if localMonitor == nil {
-            localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                guard QuickTranslateService.matchesHotkey(event) else { return event }
-                Task { @MainActor in
-                    QuickTranslateService.shared.onHotkeyPressed()
-                }
-                return nil
+        unregisterEventMonitors()
+
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            guard QuickTranslateService.matchesHotkey(event) else { return event }
+            Task { @MainActor in
+                QuickTranslateService.shared.onHotkeyPressed()
             }
+            return nil
         }
         self.registrationStatus.localMonitorOK = localMonitor != nil
-
-        if let globalMonitor {
-            NSEvent.removeMonitor(globalMonitor)
-            self.globalMonitor = nil
-        }
 
         if AccessibilityHelper.isTrusted {
             globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { event in
@@ -297,22 +329,11 @@ final class QuickTranslateService: NSObject {
     }
 
     fileprivate static func matchesHotkey(_ event: NSEvent) -> Bool {
-        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        return flags.contains(.command)
-            && flags.contains(.shift)
-            && !flags.contains(.option)
-            && !flags.contains(.control)
-            && event.keyCode == UInt16(kVK_ANSI_D)
+        KeyboardShortcutPersistence.translateShortcut().matches(event)
     }
 
     fileprivate static func matchesCGEvent(_ event: CGEvent) -> Bool {
-        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-        let flags = event.flags
-        return keyCode == Int64(kVK_ANSI_D)
-            && flags.contains(.maskCommand)
-            && flags.contains(.maskShift)
-            && !flags.contains(.maskAlternate)
-            && !flags.contains(.maskControl)
+        KeyboardShortcutPersistence.translateShortcut().matches(event)
     }
 
     @MainActor
@@ -321,9 +342,10 @@ final class QuickTranslateService: NSObject {
         didReportStartup = true
 
         if registrationStatus.isReady {
+            let shortcut = KeyboardShortcutPersistence.translateShortcut().displayString
             showNotification(
                 title: "EasyTrans Plus 快捷键已就绪",
-                body: "\(registrationStatus.summary)\n选中文字后按 ⌘⇧D 翻译"
+                body: "\(registrationStatus.summary)\n选中文字后按 \(shortcut) 翻译"
             )
         } else {
             showNotification(

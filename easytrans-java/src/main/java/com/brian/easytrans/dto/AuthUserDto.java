@@ -6,6 +6,9 @@ public class AuthUserDto {
     private String planName;
     private Integer dailyQuota;
     private Integer dailyUsed;
+    private java.time.LocalDateTime planExpiresAt;
+    private Boolean paidPlanActive;
+    private Boolean requiresPurchase;
 
     public String getEmail() {
         return email;
@@ -37,5 +40,29 @@ public class AuthUserDto {
 
     public void setDailyUsed(Integer dailyUsed) {
         this.dailyUsed = dailyUsed;
+    }
+
+    public java.time.LocalDateTime getPlanExpiresAt() {
+        return planExpiresAt;
+    }
+
+    public void setPlanExpiresAt(java.time.LocalDateTime planExpiresAt) {
+        this.planExpiresAt = planExpiresAt;
+    }
+
+    public Boolean getPaidPlanActive() {
+        return paidPlanActive;
+    }
+
+    public void setPaidPlanActive(Boolean paidPlanActive) {
+        this.paidPlanActive = paidPlanActive;
+    }
+
+    public Boolean getRequiresPurchase() {
+        return requiresPurchase;
+    }
+
+    public void setRequiresPurchase(Boolean requiresPurchase) {
+        this.requiresPurchase = requiresPurchase;
     }
 }

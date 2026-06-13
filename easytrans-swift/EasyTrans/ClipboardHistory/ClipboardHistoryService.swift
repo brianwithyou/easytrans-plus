@@ -93,6 +93,7 @@ final class ClipboardHistoryService: NSObject {
     @MainActor
     func start() {
         observeOtherApplications()
+        observeShortcutChanges()
         registerHotkeyListeners()
         ClipboardHistoryStore.shared.startMonitoring()
         logger.info("Clipboard history started")
@@ -192,10 +193,11 @@ final class ClipboardHistoryService: NSObject {
             return
         }
 
+        let shortcut = KeyboardShortcutPersistence.clipboardHistoryShortcut()
         let hotKeyID = EventHotKeyID(signature: OSType(0x4554_4348), id: 2)
         let registerStatus = RegisterEventHotKey(
-            UInt32(kVK_ANSI_V),
-            UInt32(cmdKey | shiftKey),
+            UInt32(shortcut.keyCode),
+            shortcut.carbonModifierFlags,
             hotKeyID,
             GetApplicationEventTarget(),
             0,
@@ -220,20 +222,15 @@ final class ClipboardHistoryService: NSObject {
 
     @MainActor
     private func registerEventMonitors() {
-        if localMonitor == nil {
-            localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-                guard ClipboardHistoryService.matchesHotkey(event) else { return event }
-                let capturedPID = ClipboardHistoryService.captureFrontmostOtherAppPID()
-                Task { @MainActor in
-                    ClipboardHistoryService.shared.onHotkeyPressed(preferredTargetPID: capturedPID)
-                }
-                return nil
-            }
-        }
+        unregisterEventMonitors()
 
-        if let globalMonitor {
-            NSEvent.removeMonitor(globalMonitor)
-            self.globalMonitor = nil
+        localMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            guard ClipboardHistoryService.matchesHotkey(event) else { return event }
+            let capturedPID = ClipboardHistoryService.captureFrontmostOtherAppPID()
+            Task { @MainActor in
+                ClipboardHistoryService.shared.onHotkeyPressed(preferredTargetPID: capturedPID)
+            }
+            return nil
         }
 
         if AccessibilityHelper.isTrusted {
@@ -292,25 +289,27 @@ final class ClipboardHistoryService: NSObject {
     }
 
     fileprivate static func matchesHotkey(_ event: NSEvent) -> Bool {
-        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
-        return flags.contains(.command)
-            && flags.contains(.shift)
-            && !flags.contains(.option)
-            && !flags.contains(.control)
-            && event.keyCode == UInt16(kVK_ANSI_V)
+        KeyboardShortcutPersistence.clipboardHistoryShortcut().matches(event)
     }
 
     fileprivate static func matchesCGEvent(_ event: CGEvent) -> Bool {
-        let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-        let flags = event.flags
-        return keyCode == Int64(kVK_ANSI_V)
-            && flags.contains(.maskCommand)
-            && flags.contains(.maskShift)
-            && !flags.contains(.maskAlternate)
-            && !flags.contains(.maskControl)
+        KeyboardShortcutPersistence.clipboardHistoryShortcut().matches(event)
     }
 
     // MARK: - Target app tracking
+
+    @MainActor
+    private func observeShortcutChanges() {
+        NotificationCenter.default.addObserver(
+            forName: .keyboardShortcutsDidChange,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor in
+                self?.refreshListeners()
+            }
+        }
+    }
 
     @MainActor
     private func observeOtherApplications() {
@@ -506,7 +505,6 @@ final class ClipboardHistoryService: NSObject {
     private func preparePanelForKeyboardInput() {
         guard let panel, panel.isVisible else { return }
 
-        DockVisibility.showInDockIfNeeded()
         preventMainWindowsFromStealingKeyFocus()
 
         if panel.styleMask.contains(.nonactivatingPanel) {
@@ -705,6 +703,8 @@ final class ClipboardHistoryService: NSObject {
             return
         }
 
+        ClipboardHistoryStore.shared.promoteToFront(item)
+
         guard AccessibilityHelper.isTrusted else {
             logger.error("Paste requires accessibility permission")
             presentPasteFailureAlert("需要「辅助功能」权限才能粘贴到原应用。请在系统设置中授权 EasyTrans Plus。")
@@ -716,7 +716,8 @@ final class ClipboardHistoryService: NSObject {
             logger.error(
                 "Paste failed: no locked target application (locked PID: \(self.lockedPasteTargetPID ?? -1, privacy: .public))"
             )
-            presentPasteFailureAlert("无法确定要粘贴的目标应用。请先在输入框中定位光标，再按 ⌘⇧V 打开历史并双击条目。")
+            let shortcut = KeyboardShortcutPersistence.clipboardHistoryShortcut().displayString
+            presentPasteFailureAlert("无法确定要粘贴的目标应用。请先在输入框中定位光标，再按 \(shortcut) 打开历史并双击条目。")
             return
         }
 
@@ -779,7 +780,8 @@ final class ClipboardHistoryService: NSObject {
         guard let textView = lockedEasyTransTextView ?? focusedEditableTextViewInEasyTrans() else {
             isPasting = false
             logger.error("Paste into EasyTrans failed: no editable text view")
-            presentPasteFailureAlert("请先在原文输入框中点击定位光标，再按 ⌘⇧V 打开历史并双击条目。")
+            let shortcut = KeyboardShortcutPersistence.clipboardHistoryShortcut().displayString
+            presentPasteFailureAlert("请先在原文输入框中点击定位光标，再按 \(shortcut) 打开历史并双击条目。")
             return
         }
 
@@ -791,7 +793,6 @@ final class ClipboardHistoryService: NSObject {
 
     @MainActor
     private func restoreEasyTransWindowFocus() {
-        NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
 
         let window = lockedEasyTransWindow ?? lockedEasyTransTextView?.window

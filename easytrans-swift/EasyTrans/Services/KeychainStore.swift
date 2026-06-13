@@ -17,6 +17,7 @@ enum KeychainStore {
 
     /// 应用启动时调用一次，清理旧版钥匙串条目（无 accessibility 属性，易触发密码弹窗）。
     static func migrateIfNeeded() {
+        InstallSessionTracker.reconcileOnLaunch()
         guard !UserDefaults.standard.bool(forKey: migrationKey) else { return }
         clearKeychainOnly()
         UserDefaults.standard.set(true, forKey: migrationKey)
@@ -135,5 +136,42 @@ enum KeychainStore {
             kSecAttrService as String: service
         ]
         SecItemDelete(query as CFDictionary)
+    }
+}
+
+// MARK: - 安装标记（检测「删数据后重装」）
+
+enum InstallSessionTracker {
+    private static var appSupportDirectory: URL {
+        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("com.easytrans.pro", isDirectory: true)
+    }
+
+    private static var markerURL: URL {
+        appSupportDirectory.appendingPathComponent("install-marker.plist")
+    }
+
+    /// 首次安装，或用户删除了 Application Support 后重装：清除本地登录态。
+    /// 仅替换 `/Applications` 里的 .app 不会触发（属正常升级行为）。
+    static func reconcileOnLaunch() {
+        let fileManager = FileManager.default
+        try? fileManager.createDirectory(at: appSupportDirectory, withIntermediateDirectories: true)
+
+        if let data = try? Data(contentsOf: markerURL),
+           let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
+           let installID = plist["installID"] as? String,
+           !installID.isEmpty {
+            return
+        }
+
+        KeychainStore.clearSession()
+
+        let plist: [String: Any] = [
+            "installID": UUID().uuidString,
+            "createdAt": ISO8601DateFormatter().string(from: Date())
+        ]
+        if let data = try? PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0) {
+            try? data.write(to: markerURL, options: .atomic)
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.brian.easytrans.controller;
 
+import com.brian.easytrans.common.RequestIdFilter;
 import com.brian.easytrans.dto.TranslateStreamRequest;
 import com.brian.easytrans.security.JwtAuthInterceptor;
 import com.brian.easytrans.service.TranslateService;
@@ -25,6 +26,7 @@ public class TranslateController {
     @PostMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(@Valid @RequestBody TranslateStreamRequest request, HttpServletRequest httpRequest) {
         String userId = (String) httpRequest.getAttribute(JwtAuthInterceptor.USER_ID_ATTR);
-        return translateService.streamTranslate(userId, request);
+        String requestId = (String) httpRequest.getAttribute(RequestIdFilter.REQUEST_ID_ATTR);
+        return translateService.streamTranslate(userId, requestId, request);
     }
 }

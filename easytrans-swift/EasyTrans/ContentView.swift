@@ -5,6 +5,8 @@ struct ContentView: View {
     @Environment(\.openWindow) private var openWindow
     @EnvironmentObject private var settings: AppSettings
     @ObservedObject private var session = TranslationSession.shared
+    @ObservedObject private var cloudAuth = CloudAuthService.shared
+    @ObservedObject private var shortcutSettings = KeyboardShortcutSettings.shared
 
     @State private var translationTask: Task<Void, Never>?
 
@@ -27,6 +29,7 @@ struct ContentView: View {
             session.registerOpenWindowHandler {
                 openWindow(id: "main")
             }
+            NotificationCenter.default.post(name: .mainWindowContentDidLoad, object: nil)
         }
         .alert("翻译失败", isPresented: .init(
             get: { session.errorMessage != nil },
@@ -46,7 +49,17 @@ struct ContentView: View {
             Text("EasyTrans Plus")
                 .font(.title2.weight(.semibold))
             Spacer()
-            if !settings.isConfigured {
+            if settings.translationMode == .cloud && !cloudAuth.isLoggedIn {
+                HStack(spacing: 8) {
+                    Button("登录") {
+                        cloudAuth.presentLogin()
+                    }
+                    Button("注册") {
+                        cloudAuth.presentRegister()
+                    }
+                }
+                .controlSize(.small)
+            } else if settings.translationMode == .byok && !settings.isConfigured {
                 Label(settings.configurationHint, systemImage: "exclamationmark.triangle.fill")
                     .font(.caption)
                     .foregroundStyle(.orange)
@@ -171,9 +184,12 @@ struct ContentView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Text("⌘⇧D 翻译选中文字")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 6) {
+                KeyboardShortcutLabel(shortcut: shortcutSettings.translateShortcut)
+                Text("翻译选中文字")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
 
             Spacer()
 

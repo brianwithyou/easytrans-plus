@@ -52,6 +52,15 @@ struct CloudAPIClient: Sendable {
         try await getJSON(path: "/api/v1/me", authorized: true)
     }
 
+    func fetchBillingConfig() async throws -> BillingConfigResponse {
+        try await getJSON(path: "/api/v1/billing/config", authorized: false)
+    }
+
+    func fetchCheckoutURL(variantId: String) async throws -> BillingCheckoutResponse {
+        let encoded = variantId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? variantId
+        return try await getJSON(path: "/api/v1/billing/checkout?variantId=\(encoded)", authorized: true)
+    }
+
     func streamTranslate(
         request: TranslationRequest,
         onDelta: @escaping @Sendable (String) -> Void
@@ -123,7 +132,16 @@ struct CloudAPIClient: Sendable {
             )
         }
 
-        if httpResponse.statusCode == 402 || httpResponse.statusCode == 429 {
+        if httpResponse.statusCode == 402 {
+            var errorData = Data()
+            for try await byte in bytes {
+                errorData.append(byte)
+            }
+            let message = Self.extractErrorMessage(from: errorData) ?? "请先购买套餐后使用云端翻译"
+            throw TranslationError.httpError(status: 402, message: message)
+        }
+
+        if httpResponse.statusCode == 429 {
             throw TranslationError.quotaExceeded
         }
 

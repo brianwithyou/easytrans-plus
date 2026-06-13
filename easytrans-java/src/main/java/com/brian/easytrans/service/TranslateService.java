@@ -27,14 +27,24 @@ public class TranslateService {
     private final AppUserDao appUserDao;
     private final LlmChatClient chatClient;
     private final ObjectMapper objectMapper;
+    private final TranslationEventService translationEventService;
+    private final PlanService planService;
 
-    public TranslateService(AppUserDao appUserDao, LlmChatClient chatClient, ObjectMapper objectMapper) {
+    public TranslateService(
+            AppUserDao appUserDao,
+            LlmChatClient chatClient,
+            ObjectMapper objectMapper,
+            TranslationEventService translationEventService,
+            PlanService planService) {
         this.appUserDao = appUserDao;
         this.chatClient = chatClient;
         this.objectMapper = objectMapper;
+        this.translationEventService = translationEventService;
+        this.planService = planService;
     }
 
-    public SseEmitter streamTranslate(String userId, TranslateStreamRequest request) {
+    public SseEmitter streamTranslate(String userId, String serverRequestId, TranslateStreamRequest request) {
+        long startTime = System.currentTimeMillis();
         String text = request.getText().trim();
         if (!StringUtils.hasText(text)) {
             throw new BusinessException("翻译文本不能为空");
@@ -46,17 +56,35 @@ public class TranslateService {
 
         assertActive(user);
         resetDailyUsageIfNeeded(user);
-        ensureQuota(user, text.length());
+        planService.syncPlanState(user);
 
         TranslationLanguage source = TranslationLanguage.fromCode(request.getSourceLanguage());
         TranslationLanguage target = TranslationLanguage.fromCode(request.getTargetLanguage());
         TranslationStyle style = TranslationStyle.fromApiValue(request.getStyle());
 
-        String systemPrompt = TranslationPromptBuilder.systemPrompt(source, target, style);
-        String userPrompt = TranslationPromptBuilder.userPrompt(text);
         String clientRequestId = StringUtils.hasText(request.getClientRequestId())
                 ? request.getClientRequestId()
                 : "unknown";
+
+        TranslationEventContext eventContext = new TranslationEventContext(
+                user.getId(),
+                serverRequestId,
+                clientRequestId,
+                source.getCode(),
+                target.getCode(),
+                style.name(),
+                text.length(),
+                startTime);
+
+        if (!planService.hasServiceAccess(user)) {
+            translationEventService.recordQuotaExceeded(eventContext);
+            throw new BusinessException("请先购买套餐后使用云端翻译", HttpStatus.PAYMENT_REQUIRED);
+        }
+
+        ensureQuota(user, text.length(), eventContext);
+
+        String systemPrompt = TranslationPromptBuilder.systemPrompt(source, target, style);
+        String userPrompt = TranslationPromptBuilder.userPrompt(text);
 
         log.info(
                 "translate start userId={} requestId={} source={} target={} style={} inputChars={} quotaUsed={} quotaLimit={}",
@@ -70,19 +98,18 @@ public class TranslateService {
                 user.getDailyQuota());
 
         SseEmitter emitter = new SseEmitter(120_000L);
-        long startTime = System.currentTimeMillis();
-        Thread.startVirtualThread(() -> runStream(user, text.length(), clientRequestId, systemPrompt, userPrompt, emitter, startTime));
+        Thread.startVirtualThread(() ->
+                runStream(user, text.length(), eventContext, systemPrompt, userPrompt, emitter));
         return emitter;
     }
 
     private void runStream(
             AppUser user,
             int charCount,
-            String clientRequestId,
+            TranslationEventContext eventContext,
             String systemPrompt,
             String userPrompt,
-            SseEmitter emitter,
-            long startTime) {
+            SseEmitter emitter) {
         try {
             String result = chatClient.streamChatWithMessages(
                     List.of(
@@ -95,21 +122,25 @@ public class TranslateService {
             consumeUsage(user, charCount);
             emitter.complete();
 
+            translationEventService.recordSuccess(eventContext, result.length());
+
             log.info(
                     "translate success userId={} requestId={} inputChars={} outputChars={} durationMs={} quotaUsed={}",
                     user.getId(),
-                    clientRequestId,
+                    eventContext.getClientRequestId(),
                     charCount,
                     result.length(),
-                    System.currentTimeMillis() - startTime,
+                    eventContext.durationMs(),
                     user.getDailyUsed());
         } catch (Exception ex) {
+            translationEventService.recordFailure(eventContext, ex.getMessage());
+
             log.warn(
                     "translate failed userId={} requestId={} inputChars={} durationMs={} message={}",
                     user.getId(),
-                    clientRequestId,
+                    eventContext.getClientRequestId(),
                     charCount,
-                    System.currentTimeMillis() - startTime,
+                    eventContext.durationMs(),
                     ex.getMessage());
             emitter.completeWithError(ex);
         }
@@ -125,17 +156,19 @@ public class TranslateService {
         }
     }
 
-    private void ensureQuota(AppUser user, int charCount) {
+    private void ensureQuota(AppUser user, int charCount, TranslationEventContext eventContext) {
         int quota = user.getDailyQuota() == null ? 0 : user.getDailyQuota();
         int used = user.getDailyUsed() == null ? 0 : user.getDailyUsed();
         if (used + charCount > quota) {
+            translationEventService.recordQuotaExceeded(eventContext);
+
             log.warn(
                     "translate quota exceeded userId={} inputChars={} quotaUsed={} quotaLimit={}",
                     user.getId(),
                     charCount,
                     used,
                     quota);
-            throw new BusinessException("今日翻译额度已用尽", HttpStatus.TOO_MANY_REQUESTS);
+            throw new BusinessException("今日翻译额度已用尽，请明日再试或续费", HttpStatus.TOO_MANY_REQUESTS);
         }
     }
 

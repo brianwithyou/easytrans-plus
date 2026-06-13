@@ -43,6 +43,7 @@ public class ResendEmailGateway implements EmailGateway {
         body.put("from", resend.getFrom());
         body.put("to", List.of(email));
         body.put("subject", "EasyTrans Plus 注册验证码");
+        body.put("text", buildText(code));
         body.put("html", buildHtml(code));
 
         HttpURLConnection connection = null;
@@ -61,7 +62,7 @@ public class ResendEmailGateway implements EmailGateway {
 
             String errorBody = readBody(connection.getErrorStream());
             log.error("Resend email failed status={} body={}", status, errorBody);
-            throw new BusinessException("邮件发送失败，请稍后重试");
+            throw new BusinessException(resolveResendErrorMessage(status, errorBody));
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
@@ -86,6 +87,19 @@ public class ResendEmailGateway implements EmailGateway {
         return connection;
     }
 
+    private String buildText(String code) {
+        return """
+                你好，
+
+                你正在注册 EasyTrans Plus，验证码为：%s
+
+                验证码 10 分钟内有效，请勿泄露给他人。
+                如非本人操作，请忽略此邮件。
+                """
+                .formatted(code)
+                .strip();
+    }
+
     private String buildHtml(String code) {
         return """
                 <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6;color:#111;">
@@ -101,8 +115,43 @@ public class ResendEmailGateway implements EmailGateway {
 
     private void validateConfig(AppProperties.Resend resend) {
         if (!StringUtils.hasText(resend.getApiKey()) || !StringUtils.hasText(resend.getFrom())) {
-            throw new BusinessException("Resend 邮件服务未配置完整，请检查 RESEND_API_KEY 与 RESEND_FROM");
+            throw new BusinessException("邮件服务未配置，请联系管理员检查 RESEND_API_KEY 与 RESEND_FROM");
         }
+    }
+
+    private String resolveResendErrorMessage(int status, String errorBody) {
+        String remoteMessage = extractJsonMessage(errorBody);
+        if (StringUtils.hasText(remoteMessage)) {
+            if (remoteMessage.contains("only send testing emails")) {
+                return "邮件服务处于测试模式，仅可向 Resend 账号验证过的邮箱发信";
+            }
+            if (remoteMessage.contains("domain is not verified") || remoteMessage.contains("not verified")) {
+                return "发信域名尚未在 Resend 验证通过";
+            }
+            log.warn("Resend remote error: {}", remoteMessage);
+        }
+        if (status == 401 || status == 403) {
+            return "邮件服务认证失败，请检查 RESEND_API_KEY";
+        }
+        if (status == 422) {
+            return "发信地址无效，请检查 RESEND_FROM 是否与已验证域名一致";
+        }
+        return "邮件发送失败，请稍后重试";
+    }
+
+    private String extractJsonMessage(String errorBody) {
+        if (!StringUtils.hasText(errorBody)) {
+            return null;
+        }
+        try {
+            var node = objectMapper.readTree(errorBody);
+            if (node.hasNonNull("message")) {
+                return node.get("message").asText();
+            }
+        } catch (Exception ignored) {
+            // fall through
+        }
+        return null;
     }
 
     private String readBody(InputStream stream) {

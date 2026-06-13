@@ -210,6 +210,7 @@ curl -X POST https://api.yourdomain.com/api/v1/auth/login \
 - [ ] 配置域名 + HTTPS（Let's Encrypt）
 - [ ] 至少配置一个 LLM API Key
 - [ ] 配置 Resend：`RESEND_API_KEY`、`RESEND_FROM`，并执行 `sql/02_email_verification_code.sql`（已有库升级）
+- [ ] 已有库升级时执行 `sql/03_translation_event.sql`（翻译元数据事件表）
 - [ ] 客户端 `云端服务 API 地址` 指向你的 HTTPS 域名
 - [ ] 云服务器安全组：只开放 22、80、443
 
@@ -224,7 +225,7 @@ curl -X POST https://api.yourdomain.com/api/v1/auth/login \
 
 - [ ] 移除客户端中尚未实现的 **License 激活** UI
 - [ ] 管理后台（用户封禁、改配额）
-- [ ] 支付 / 套餐系统
+- [ ] Lemon Squeezy 计费：`BILLING_ENABLED=true` 时基础版收费（未购买不可翻译）；`false` 时基础版免费。配置 `app.billing.products`、执行 `sql/04_billing.sql`、Webhook `POST /api/v1/billing/webhook`
 - [ ] CI 自动构建镜像
 
 ---

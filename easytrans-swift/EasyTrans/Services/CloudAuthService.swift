@@ -5,6 +5,21 @@ final class CloudAuthService: ObservableObject {
     static let shared = CloudAuthService()
 
     @Published private(set) var isLoggedIn = false
+    @Published var authPrompt: AuthPrompt?
+
+    enum AuthPrompt: String, Identifiable {
+        case login
+        case register
+
+        var id: String { rawValue }
+
+        var initialScreen: AuthPanelView.Screen {
+            switch self {
+            case .login: return .login
+            case .register: return .register
+            }
+        }
+    }
 
     private init() {
         isLoggedIn = hasStoredSession
@@ -24,7 +39,7 @@ final class CloudAuthService: ObservableObject {
 
         isLoggedIn = true
         if let email = KeychainStore.load(account: .accountEmail) {
-            settings.cloudAccount = CloudAccount(email: email, planName: "标准版", dailyQuota: nil, dailyUsed: nil)
+            settings.cloudAccount = CloudAccount(email: email, planName: "基础版", dailyQuota: nil, dailyUsed: nil)
         }
 
         let client = CloudAPIClient(baseURL: settings.cloudBaseURL)
@@ -121,6 +136,19 @@ final class CloudAuthService: ObservableObject {
         KeychainStore.clearSession()
         settings.cloudAccount = nil
         isLoggedIn = false
+        authPrompt = nil
+    }
+
+    func presentLogin() {
+        authPrompt = .login
+    }
+
+    func presentRegister() {
+        authPrompt = .register
+    }
+
+    func dismissAuthPrompt() {
+        authPrompt = nil
     }
 
     private func persistSession(response: AuthResponse, email: String) {

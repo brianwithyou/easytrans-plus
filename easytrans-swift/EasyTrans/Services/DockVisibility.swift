@@ -6,12 +6,13 @@ enum DockVisibility {
         NSApp.setActivationPolicy(.accessory)
     }
 
-    /// 打开主窗口时临时切换为普通应用，以便窗口正常获得焦点。
-    static func showInDockIfNeeded() {
+    /// `.accessory` 下窗口难以获焦；展示主窗口前切回 `.regular`（LSUIElement 仍隐藏 Dock）。
+    static func prepareForWindowPresentation() {
         NSApp.setActivationPolicy(.regular)
+        NSApp.activate(ignoringOtherApps: true)
     }
 
-    /// 主窗口全部关闭后恢复为菜单栏应用。
+    /// 主窗口全部关闭后确保保持菜单栏模式。
     static func updateAfterMainWindowChange() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             let hasVisibleMainWindow = NSApp.windows.contains { window in
@@ -20,13 +21,6 @@ enum DockVisibility {
             if !hasVisibleMainWindow {
                 hideFromDock()
             }
-        }
-    }
-
-    /// 启动时隐藏 SwiftUI 自动创建的主窗口。
-    static func suppressInitialMainWindows() {
-        for window in NSApp.windows where window.canBecomeMain {
-            window.orderOut(nil)
         }
     }
 }

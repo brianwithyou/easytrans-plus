@@ -3,6 +3,7 @@ package com.brian.easytrans.config;
 import com.brian.easytrans.integration.llm.LlmProvider;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.util.StringUtils;
 
@@ -13,6 +14,7 @@ public class AppProperties {
     private final Cors cors = new Cors();
     private final Llm llm = new Llm();
     private final Email email = new Email();
+    private final Billing billing = new Billing();
 
     public Jwt getJwt() {
         return jwt;
@@ -28,6 +30,10 @@ public class AppProperties {
 
     public Email getEmail() {
         return email;
+    }
+
+    public Billing getBilling() {
+        return billing;
     }
 
     public static class Jwt {
@@ -210,6 +216,162 @@ public class AppProperties {
 
         public void setFrom(String from) {
             this.from = from;
+        }
+    }
+
+    public static class Billing {
+        private boolean enabled = false;
+        private final FreePlan freePlan = new FreePlan();
+        private final UnpaidPlan unpaidPlan = new UnpaidPlan();
+        private final LemonSqueezy lemonSqueezy = new LemonSqueezy();
+        private List<BillingProduct> products = new ArrayList<>();
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public FreePlan getFreePlan() {
+            return freePlan;
+        }
+
+        public UnpaidPlan getUnpaidPlan() {
+            return unpaidPlan;
+        }
+
+        public LemonSqueezy getLemonSqueezy() {
+            return lemonSqueezy;
+        }
+
+        public List<BillingProduct> getProducts() {
+            return products;
+        }
+
+        public void setProducts(List<BillingProduct> products) {
+            this.products = products == null ? new ArrayList<>() : products;
+        }
+
+        public Optional<BillingProduct> findProductByVariantId(String variantId) {
+            if (!StringUtils.hasText(variantId)) {
+                return Optional.empty();
+            }
+            return products.stream()
+                    .filter(product -> variantId.equals(product.getVariantId()))
+                    .findFirst();
+        }
+    }
+
+    public static class FreePlan {
+        private String name = "基础版";
+        private int dailyQuota = 50000;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public int getDailyQuota() {
+            return dailyQuota;
+        }
+
+        public void setDailyQuota(int dailyQuota) {
+            this.dailyQuota = dailyQuota;
+        }
+    }
+
+    public static class UnpaidPlan {
+        private String name = "未开通";
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    public static class LemonSqueezy {
+        private String webhookSecret;
+        private boolean allowTestMode = true;
+
+        public String getWebhookSecret() {
+            return webhookSecret;
+        }
+
+        public void setWebhookSecret(String webhookSecret) {
+            this.webhookSecret = webhookSecret;
+        }
+
+        public boolean isAllowTestMode() {
+            return allowTestMode;
+        }
+
+        public void setAllowTestMode(boolean allowTestMode) {
+            this.allowTestMode = allowTestMode;
+        }
+    }
+
+    public static class BillingProduct {
+        private String variantId;
+        private String planName;
+        private int dailyQuota;
+        private int durationDays = 30;
+        private String label;
+        private String checkoutUrl;
+
+        public String getVariantId() {
+            return variantId;
+        }
+
+        public void setVariantId(String variantId) {
+            this.variantId = variantId;
+        }
+
+        public String getPlanName() {
+            return planName;
+        }
+
+        public void setPlanName(String planName) {
+            this.planName = planName;
+        }
+
+        public int getDailyQuota() {
+            return dailyQuota;
+        }
+
+        public void setDailyQuota(int dailyQuota) {
+            this.dailyQuota = dailyQuota;
+        }
+
+        public int getDurationDays() {
+            return durationDays;
+        }
+
+        public void setDurationDays(int durationDays) {
+            this.durationDays = durationDays;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
+        }
+
+        public String getCheckoutUrl() {
+            return checkoutUrl;
+        }
+
+        public void setCheckoutUrl(String checkoutUrl) {
+            this.checkoutUrl = checkoutUrl;
         }
     }
 }

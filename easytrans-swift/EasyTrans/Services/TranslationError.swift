@@ -24,7 +24,7 @@ enum TranslationError: LocalizedError {
         case let .network(error):
             return "网络错误: \(error.localizedDescription)"
         case .quotaExceeded:
-            return "今日翻译额度已用尽，请升级套餐或切换为自备 API Key"
+            return "今日翻译额度已用尽，请明日再试或续费"
         }
     }
 }

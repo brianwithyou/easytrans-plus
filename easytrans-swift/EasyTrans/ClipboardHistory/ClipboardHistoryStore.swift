@@ -71,6 +71,18 @@ final class ClipboardHistoryStore: ObservableObject {
         logger.debug("Suppress next pasteboard change (paste-from-history)")
     }
 
+    /// 将指定记录移到列表最前（双击粘贴时调用，便于常用条目保持在顶部）。
+    func promoteToFront(_ item: ClipboardHistoryItem) {
+        guard let index = items.firstIndex(where: { $0.id == item.id }),
+              index > 0 else {
+            return
+        }
+        let promoted = items.remove(at: index)
+        items.insert(promoted, at: 0)
+        logger.debug("Promoted clipboard history item to front")
+        scheduleDebouncedSave()
+    }
+
     // MARK: - 剪贴板轮询
 
     private func checkPasteboard() {

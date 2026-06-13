@@ -42,9 +42,7 @@ xcodebuild -scheme EasyTrans -configuration Release -destination 'platform=macOS
 ## 文档
 
 - [使用文档](docs/USAGE.md)
-- [部署文档](docs/DEPLOYMENT.md)
-
-> 文档内容基于开源版，部分路径与名称请以商业版 README 为准。
+- [部署与发布](docs/DEPLOYMENT.md)（含 **Release 发布步骤**）
 
 ## License
 

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.brian.easytrans.entity.base.BaseEntity;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @TableName("app_user")
 public class AppUser extends BaseEntity {
@@ -23,7 +24,7 @@ public class AppUser extends BaseEntity {
     private String nickname;
 
     @TableField("plan_name")
-    private String planName = "标准版";
+    private String planName = "基础版";
 
     @TableField("daily_quota")
     private Integer dailyQuota = 50000;
@@ -33,6 +34,9 @@ public class AppUser extends BaseEntity {
 
     @TableField("usage_reset_date")
     private LocalDate usageResetDate;
+
+    @TableField("plan_expires_at")
+    private LocalDateTime planExpiresAt;
 
     @TableField
     private Integer status = 1;
@@ -99,6 +103,14 @@ public class AppUser extends BaseEntity {
 
     public void setUsageResetDate(LocalDate usageResetDate) {
         this.usageResetDate = usageResetDate;
+    }
+
+    public LocalDateTime getPlanExpiresAt() {
+        return planExpiresAt;
+    }
+
+    public void setPlanExpiresAt(LocalDateTime planExpiresAt) {
+        this.planExpiresAt = planExpiresAt;
     }
 
     public Integer getStatus() {

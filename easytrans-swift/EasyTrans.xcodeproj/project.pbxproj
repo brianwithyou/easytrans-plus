@@ -36,6 +36,9 @@
 		B100001B000000000000001B /* TranslationProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001B000000000000001B /* TranslationProvider.swift */; };
 		B100001C000000000000001C /* CloudAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001C000000000000001C /* CloudAPIClient.swift */; };
 		B100001D000000000000001D /* CloudAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001D000000000000001D /* CloudAuthService.swift */; };
+		B100001E000000000000001E /* AuthPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001E000000000000001E /* AuthPanelView.swift */; };
+		B100001F000000000000001F /* KeyboardShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001F000000000000001F /* KeyboardShortcut.swift */; };
+		B10000200000000000000020 /* ShortcutRecorderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000200000000000000020 /* ShortcutRecorderView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,6 +72,9 @@
 		F100001B000000000000001B /* TranslationProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranslationProvider.swift; sourceTree = "<group>"; };
 		F100001C000000000000001C /* CloudAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudAPIClient.swift; sourceTree = "<group>"; };
 		F100001D000000000000001D /* CloudAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudAuthService.swift; sourceTree = "<group>"; };
+		F100001E000000000000001E /* AuthPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthPanelView.swift; sourceTree = "<group>"; };
+		F100001F000000000000001F /* KeyboardShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcut.swift; sourceTree = "<group>"; };
+		F10000200000000000000020 /* ShortcutRecorderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorderView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -113,6 +119,7 @@
 				F10000140000000000000014 /* TranslationMode.swift */,
 				F10000150000000000000015 /* TranslationRequest.swift */,
 				F10000160000000000000016 /* CloudAccount.swift */,
+				F100001F000000000000001F /* KeyboardShortcut.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -154,6 +161,8 @@
 			isa = PBXGroup;
 			children = (
 				F10000070000000000000007 /* SettingsView.swift */,
+				F100001E000000000000001E /* AuthPanelView.swift */,
+				F10000200000000000000020 /* ShortcutRecorderView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -263,6 +272,9 @@
 				B100001B000000000000001B /* TranslationProvider.swift in Sources */,
 				B100001C000000000000001C /* CloudAPIClient.swift in Sources */,
 				B100001D000000000000001D /* CloudAuthService.swift in Sources */,
+				B100001E000000000000001E /* AuthPanelView.swift in Sources */,
+				B100001F000000000000001F /* KeyboardShortcut.swift in Sources */,
+				B10000200000000000000020 /* ShortcutRecorderView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
