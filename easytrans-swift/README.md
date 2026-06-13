@@ -37,7 +37,7 @@ open EasyTrans.xcodeproj
 xcodebuild -scheme EasyTrans -configuration Release -destination 'platform=macOS' build
 ```
 
-产物：`build/Release/EasyTrans.app`（显示名称为 EasyTrans Plus）
+产物：`build/Release/EasyTrans Plus.app`
 
 ## 文档
 

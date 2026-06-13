@@ -33,7 +33,7 @@ final class CloudAuthService: ObservableObject {
             let email = profile.email ?? KeychainStore.load(account: .accountEmail) ?? ""
             settings.cloudAccount = profile.toCloudAccount(fallbackEmail: email)
             if !email.isEmpty {
-                try? KeychainStore.save(email, account: .accountEmail)
+                KeychainStore.save(email, account: .accountEmail)
             }
             isLoggedIn = true
         } catch {
@@ -49,22 +49,36 @@ final class CloudAuthService: ObservableObject {
 
         let client = CloudAPIClient(baseURL: settings.cloudBaseURL)
         let response = try await client.login(email: trimmedEmail, password: password)
-        try persistSession(response: response, email: trimmedEmail)
+        persistSession(response: response, email: trimmedEmail)
         settings.cloudAccount = response.toCloudAccount(fallbackEmail: trimmedEmail)
         isLoggedIn = true
     }
 
-    func register(email: String, password: String, settings: AppSettings) async throws {
+    func register(email: String, password: String, code: String, settings: AppSettings) async throws {
         let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedCode = code.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedEmail.isEmpty, !password.isEmpty else {
             throw TranslationError.httpError(status: 400, message: "请输入邮箱和密码")
         }
+        guard trimmedCode.count == 6 else {
+            throw TranslationError.httpError(status: 400, message: "请输入 6 位验证码")
+        }
 
         let client = CloudAPIClient(baseURL: settings.cloudBaseURL)
-        let response = try await client.register(email: trimmedEmail, password: password)
-        try persistSession(response: response, email: trimmedEmail)
+        let response = try await client.register(email: trimmedEmail, password: password, code: trimmedCode)
+        persistSession(response: response, email: trimmedEmail)
         settings.cloudAccount = response.toCloudAccount(fallbackEmail: trimmedEmail)
         isLoggedIn = true
+    }
+
+    func sendRegisterCode(email: String, settings: AppSettings) async throws {
+        let trimmedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedEmail.isEmpty else {
+            throw TranslationError.httpError(status: 400, message: "请输入邮箱")
+        }
+
+        let client = CloudAPIClient(baseURL: settings.cloudBaseURL)
+        _ = try await client.sendRegisterCode(email: trimmedEmail)
     }
 
     func activateLicense(_ licenseKey: String, settings: AppSettings) async throws {
@@ -76,7 +90,7 @@ final class CloudAuthService: ObservableObject {
         let client = CloudAPIClient(baseURL: settings.cloudBaseURL)
         let response = try await client.activateLicense(trimmedKey)
         let email = response.user?.email ?? KeychainStore.load(account: .accountEmail) ?? "license-user"
-        try persistSession(response: response, email: email)
+        persistSession(response: response, email: email)
         settings.cloudAccount = response.toCloudAccount(fallbackEmail: email)
         isLoggedIn = true
     }
@@ -98,7 +112,7 @@ final class CloudAuthService: ObservableObject {
 
         let response = try await client.refreshToken(refreshToken)
         let email = response.user?.email ?? KeychainStore.load(account: .accountEmail) ?? ""
-        try persistSession(response: response, email: email)
+        persistSession(response: response, email: email)
         isLoggedIn = true
         return true
     }
@@ -109,11 +123,11 @@ final class CloudAuthService: ObservableObject {
         isLoggedIn = false
     }
 
-    private func persistSession(response: AuthResponse, email: String) throws {
-        try KeychainStore.save(response.token, account: .accessToken)
+    private func persistSession(response: AuthResponse, email: String) {
+        KeychainStore.save(response.token, account: .accessToken)
         if let refreshToken = response.refreshToken, !refreshToken.isEmpty {
-            try KeychainStore.save(refreshToken, account: .refreshToken)
+            KeychainStore.save(refreshToken, account: .refreshToken)
         }
-        try KeychainStore.save(email, account: .accountEmail)
+        KeychainStore.save(email, account: .accountEmail)
     }
 }

@@ -66,12 +66,16 @@ RUN_ARGS=(
   -e "DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-}"
   -e "MIMO_API_KEY=${MIMO_API_KEY:-}"
   -e "DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}"
+  -e "EMAIL_DEV_MODE=${EMAIL_DEV_MODE:-false}"
+  -e "RESEND_API_KEY=${RESEND_API_KEY:-}"
+  -e "RESEND_FROM=${RESEND_FROM:-}"
   -e "APP_CORS_ALLOWED_ORIGINS=${APP_CORS_ALLOWED_ORIGINS:-*}"
 )
 
 # 日志持久化：默认 Docker 卷；或 .env 设置 LOG_HOST_PATH=/var/log/easytrans
 if [[ -n "${LOG_HOST_PATH:-}" ]]; then
   mkdir -p "${LOG_HOST_PATH}"
+  chown -R 10001:10001 "${LOG_HOST_PATH}" 2>/dev/null || chmod 777 "${LOG_HOST_PATH}"
   RUN_ARGS+=(-v "${LOG_HOST_PATH}:/app/logs")
 else
   RUN_ARGS+=(-v "${LOG_VOLUME_NAME:-easytrans-api-logs}:/app/logs")

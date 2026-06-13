@@ -35,6 +35,10 @@ struct AuthResponse: Decodable, Sendable {
     }
 }
 
+struct SendCodeResponse: Decodable, Sendable {
+    let success: Bool?
+}
+
 struct MeResponse: Decodable, Sendable {
     let email: String?
     let planName: String?

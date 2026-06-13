@@ -25,11 +25,17 @@ public class AuthService {
     private final AppUserDao appUserDao;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailCodeService emailCodeService;
 
-    public AuthService(AppUserDao appUserDao, JwtService jwtService, PasswordEncoder passwordEncoder) {
+    public AuthService(
+            AppUserDao appUserDao,
+            JwtService jwtService,
+            PasswordEncoder passwordEncoder,
+            EmailCodeService emailCodeService) {
         this.appUserDao = appUserDao;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
+        this.emailCodeService = emailCodeService;
     }
 
     @Transactional
@@ -39,6 +45,8 @@ public class AuthService {
             log.warn("auth register failed email={} reason=already_exists", maskEmail(email));
             throw new BusinessException("该邮箱已注册");
         }
+
+        emailCodeService.verifyCode(email, EmailCodeService.SCENE_REGISTER, request.getCode());
 
         AppUser user = new AppUser();
         user.setEmail(email);

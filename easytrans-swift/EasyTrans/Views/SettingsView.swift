@@ -8,39 +8,21 @@ struct SettingsView: View {
 
     @State private var loginEmail = ""
     @State private var loginPassword = ""
-    @State private var licenseKey = ""
+    @State private var registerCode = ""
+    @State private var sendCodeCountdown = 0
     @State private var authMessage: String?
     @State private var authIsError = false
     @State private var isAuthBusy = false
 
-    private let modelOptions = ["qwen-turbo", "qwen-plus", "qwen-max", "qwen-long"]
-
     var body: some View {
         ScrollView {
             Form {
-                Section("翻译通道") {
-                    Picker("翻译方式", selection: $settings.translationMode) {
-                        ForEach(TranslationMode.allCases) { mode in
-                            Text(mode.displayName).tag(mode)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-
-                    Text(translationModeDescription)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                if settings.translationMode == .byok {
-                    byokSection
-                } else {
-                    cloudSection
-                }
+                cloudSection
 
                 Section("通用") {
                     Toggle("登录时自动启动", isOn: $settings.launchAtLogin)
 
-π                    Text("EasyTrans Plus 常驻菜单栏，不会在 Dock 中显示图标。可在「系统设置 → 通用 → 登录项」中管理开机启动。")
+                    Text("EasyTrans Plus 常驻菜单栏，不会在 Dock 中显示图标。可在「系统设置 → 通用 → 登录项」中管理开机启动。")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -50,7 +32,7 @@ struct SettingsView: View {
             .formStyle(.grouped)
             .padding(20)
         }
-        .frame(width: 540, height: 620)
+        .frame(width: 540, height: 680)
         .onAppear {
             refreshAccessibilityStatus()
             settings.refreshLaunchAtLoginStatus()
@@ -63,43 +45,9 @@ struct SettingsView: View {
         }
     }
 
-    private var translationModeDescription: String {
-        switch settings.translationMode {
-        case .byok:
-            return "使用你自己的 DashScope API Key，翻译请求直连阿里云，不经由商业服务器。"
-        case .cloud:
-            return "登录云端账号后，由 EasyTrans Plus 服务端代理翻译并管理套餐与配额。"
-        }
-    }
-
-    @ViewBuilder
-    private var byokSection: some View {
-        Section("DashScope 配置") {
-            SecureField("API Key", text: $settings.apiKey)
-                .textFieldStyle(.roundedBorder)
-
-            Picker("模型", selection: $settings.model) {
-                ForEach(modelOptions, id: \.self) { model in
-                    Text(model).tag(model)
-                }
-            }
-
-            TextField("API Base URL", text: $settings.baseURL)
-                .textFieldStyle(.roundedBorder)
-
-            Link("获取 API Key", destination: URL(string: "https://dashscope.console.aliyun.com/apiKey")!)
-            Text("API Key 保存在本机，不会上传到商业服务器。")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-        }
-    }
-
     @ViewBuilder
     private var cloudSection: some View {
         Section("云端服务") {
-            TextField("API 地址", text: $settings.cloudBaseURL)
-                .textFieldStyle(.roundedBorder)
-
             if cloudAuth.isLoggedIn, let account = settings.cloudAccount {
                 VStack(alignment: .leading, spacing: 6) {
                     LabeledContent("账号") {
@@ -132,6 +80,20 @@ struct SettingsView: View {
                     .textFieldStyle(.roundedBorder)
 
                 HStack {
+                    TextField("验证码", text: $registerCode)
+                        .textFieldStyle(.roundedBorder)
+
+                    Button(sendCodeButtonTitle) {
+                        Task { await sendRegisterCode() }
+                    }
+                    .disabled(isAuthBusy || sendCodeCountdown > 0 || loginEmail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+
+                Text("注册前请先获取邮箱验证码。本地开发环境验证码固定为 123456。")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                HStack {
                     Button("登录") {
                         Task { await login() }
                     }
@@ -142,16 +104,6 @@ struct SettingsView: View {
                     }
                     .disabled(isAuthBusy)
                 }
-
-                Divider()
-
-                TextField("License Key", text: $licenseKey)
-                    .textFieldStyle(.roundedBorder)
-
-                Button("激活 License") {
-                    Task { await activateLicense() }
-                }
-                .disabled(isAuthBusy || licenseKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
 
             if let authMessage {
@@ -227,6 +179,10 @@ struct SettingsView: View {
         }
     }
 
+    private var sendCodeButtonTitle: String {
+        sendCodeCountdown > 0 ? "\(sendCodeCountdown)s" : "获取验证码"
+    }
+
     private func refreshAccessibilityStatus() {
         accessibilityTrusted = AccessibilityHelper.isTrusted
         QuickTranslateService.shared.refreshListeners()
@@ -239,14 +195,40 @@ struct SettingsView: View {
     }
 
     private func register() async {
-        await performAuth {
-            try await cloudAuth.register(email: loginEmail, password: loginPassword, settings: settings)
+        await performAuth(clearsPassword: true) {
+            try await cloudAuth.register(
+                email: loginEmail,
+                password: loginPassword,
+                code: registerCode,
+                settings: settings
+            )
         }
     }
 
-    private func activateLicense() async {
-        await performAuth {
-            try await cloudAuth.activateLicense(licenseKey, settings: settings)
+    private func sendRegisterCode() async {
+        isAuthBusy = true
+        authMessage = nil
+        defer { isAuthBusy = false }
+
+        do {
+            try await cloudAuth.sendRegisterCode(email: loginEmail, settings: settings)
+            authIsError = false
+            authMessage = "验证码已发送，请查收邮件"
+            registerCode = ""
+            startSendCodeCountdown()
+        } catch {
+            authIsError = true
+            authMessage = error.localizedDescription
+        }
+    }
+
+    private func startSendCodeCountdown() {
+        sendCodeCountdown = 60
+        Task {
+            while sendCodeCountdown > 0 {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+                sendCodeCountdown -= 1
+            }
         }
     }
 
@@ -256,7 +238,7 @@ struct SettingsView: View {
         }
     }
 
-    private func performAuth(_ action: () async throws -> Void) async {
+    private func performAuth(clearsPassword: Bool = false, _ action: () async throws -> Void) async {
         isAuthBusy = true
         authMessage = nil
         defer { isAuthBusy = false }
@@ -265,7 +247,10 @@ struct SettingsView: View {
             try await action()
             authIsError = false
             authMessage = "操作成功"
-            loginPassword = ""
+            if clearsPassword {
+                loginPassword = ""
+                registerCode = ""
+            }
         } catch {
             authIsError = true
             authMessage = error.localizedDescription

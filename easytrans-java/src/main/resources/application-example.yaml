@@ -19,6 +19,12 @@ app:
         api-key: sk-your-dashscope-key
         # base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
         # model: qwen-plus
+  email:
+    dev-mode: true
+    dev-code: "123456"
+    resend:
+      api-key: re_your_resend_api_key
+      from: EasyTrans <onboarding@resend.dev>
 
 spring:
   datasource:

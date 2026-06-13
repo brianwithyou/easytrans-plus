@@ -47,3 +47,12 @@ app:
         api-key: ${MIMO_API_KEY:}
       - provider: deepseek
         api-key: ${DEEPSEEK_API_KEY:}
+  email:
+    dev-mode: ${EMAIL_DEV_MODE:true}
+    dev-code: ${EMAIL_DEV_CODE:123456}
+    expire-minutes: 10
+    resend-interval-seconds: 60
+    daily-limit: 10
+    resend:
+      api-key: ${RESEND_API_KEY:}
+      from: ${RESEND_FROM:EasyTrans <onboarding@resend.dev>}

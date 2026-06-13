@@ -8,10 +8,18 @@ struct CloudAPIClient: Sendable {
             .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     }
 
-    func register(email: String, password: String) async throws -> AuthResponse {
+    func sendRegisterCode(email: String) async throws {
+        let _: SendCodeResponse = try await postJSON(
+            path: "/api/v1/auth/email/send-code",
+            body: ["email": email, "scene": "register"],
+            authorized: false
+        )
+    }
+
+    func register(email: String, password: String, code: String) async throws -> AuthResponse {
         try await postJSON(
             path: "/api/v1/auth/register",
-            body: ["email": email, "password": password],
+            body: ["email": email, "password": password, "code": code],
             authorized: false
         )
     }
@@ -185,7 +193,7 @@ struct CloudAPIClient: Sendable {
         }
 
         if httpResponse.statusCode >= 400 {
-            let message = String(data: data, encoding: .utf8) ?? "未知错误"
+            let message = Self.extractErrorMessage(from: data) ?? String(data: data, encoding: .utf8) ?? "未知错误"
             throw TranslationError.httpError(status: httpResponse.statusCode, message: message)
         }
 
@@ -194,5 +202,15 @@ struct CloudAPIClient: Sendable {
         } catch {
             throw TranslationError.httpError(status: httpResponse.statusCode, message: "响应解析失败")
         }
+    }
+
+    private static func extractErrorMessage(from data: Data) -> String? {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+            return nil
+        }
+        if let message = json["message"] as? String, !message.isEmpty {
+            return message
+        }
+        return nil
     }
 }

@@ -11,8 +11,10 @@ final class AppSettings: ObservableObject {
         static let baseURL = "dashscope.baseURL"
         static let targetLanguage = "translation.targetLanguage"
         static let translationMode = "translation.mode"
-        static let cloudBaseURL = "cloud.baseURL"
     }
+
+    /// 内置云端 API 地址，用户无需配置。
+    static let builtInCloudBaseURL = "https://api.normalblog.cn"
 
     @Published var translationMode: TranslationMode {
         didSet {
@@ -33,11 +35,9 @@ final class AppSettings: ObservableObject {
         didSet { UserDefaults.standard.set(baseURL, forKey: Keys.baseURL) }
     }
 
-    @Published var cloudBaseURL: String {
-        didSet { UserDefaults.standard.set(cloudBaseURL, forKey: Keys.cloudBaseURL) }
-    }
-
     @Published var cloudAccount: CloudAccount?
+
+    var cloudBaseURL: String { Self.builtInCloudBaseURL }
 
     @Published private(set) var sourceLanguage: Language = .english
 
@@ -78,13 +78,11 @@ final class AppSettings: ObservableObject {
 
     private init() {
         let defaults = UserDefaults.standard
-        translationMode = TranslationMode(
-            rawValue: defaults.string(forKey: Keys.translationMode) ?? ""
-        ) ?? .byok
+        translationMode = .cloud
+        UserDefaults.standard.set(TranslationMode.cloud.rawValue, forKey: Keys.translationMode)
         apiKey = defaults.string(forKey: Keys.apiKey) ?? ""
         model = defaults.string(forKey: Keys.model) ?? "qwen-plus"
         baseURL = defaults.string(forKey: Keys.baseURL) ?? "https://dashscope.aliyuncs.com/compatible-mode/v1"
-        cloudBaseURL = defaults.string(forKey: Keys.cloudBaseURL) ?? "http://127.0.0.1:9091"
         sourceLanguage = .english
         targetLanguage = Self.normalizedTargetLanguage(
             Language(rawValue: defaults.string(forKey: Keys.targetLanguage) ?? "") ?? .chinese

@@ -6,3 +6,8 @@ spring:
 app:
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:*}
+  email:
+    dev-mode: ${EMAIL_DEV_MODE:false}
+    resend:
+      api-key: ${RESEND_API_KEY:}
+      from: ${RESEND_FROM:}

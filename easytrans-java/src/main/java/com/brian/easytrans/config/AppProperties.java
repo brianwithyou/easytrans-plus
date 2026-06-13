@@ -12,6 +12,7 @@ public class AppProperties {
     private final Jwt jwt = new Jwt();
     private final Cors cors = new Cors();
     private final Llm llm = new Llm();
+    private final Email email = new Email();
 
     public Jwt getJwt() {
         return jwt;
@@ -23,6 +24,10 @@ public class AppProperties {
 
     public Llm getLlm() {
         return llm;
+    }
+
+    public Email getEmail() {
+        return email;
     }
 
     public static class Jwt {
@@ -131,6 +136,80 @@ public class AppProperties {
                 return List.of(legacy);
             }
             return List.of();
+        }
+    }
+
+    public static class Email {
+        private boolean devMode = true;
+        private String devCode = "123456";
+        private int expireMinutes = 10;
+        private int resendIntervalSeconds = 60;
+        private int dailyLimit = 10;
+        private final Resend resend = new Resend();
+
+        public boolean isDevMode() {
+            return devMode;
+        }
+
+        public void setDevMode(boolean devMode) {
+            this.devMode = devMode;
+        }
+
+        public String getDevCode() {
+            return devCode;
+        }
+
+        public void setDevCode(String devCode) {
+            this.devCode = devCode;
+        }
+
+        public int getExpireMinutes() {
+            return expireMinutes;
+        }
+
+        public void setExpireMinutes(int expireMinutes) {
+            this.expireMinutes = expireMinutes;
+        }
+
+        public int getResendIntervalSeconds() {
+            return resendIntervalSeconds;
+        }
+
+        public void setResendIntervalSeconds(int resendIntervalSeconds) {
+            this.resendIntervalSeconds = resendIntervalSeconds;
+        }
+
+        public int getDailyLimit() {
+            return dailyLimit;
+        }
+
+        public void setDailyLimit(int dailyLimit) {
+            this.dailyLimit = dailyLimit;
+        }
+
+        public Resend getResend() {
+            return resend;
+        }
+    }
+
+    public static class Resend {
+        private String apiKey;
+        private String from = "EasyTrans <onboarding@resend.dev>";
+
+        public String getApiKey() {
+            return apiKey;
+        }
+
+        public void setApiKey(String apiKey) {
+            this.apiKey = apiKey;
+        }
+
+        public String getFrom() {
+            return from;
+        }
+
+        public void setFrom(String from) {
+            this.from = from;
         }
     }
 }

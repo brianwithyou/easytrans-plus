@@ -2,8 +2,8 @@ import Foundation
 import Security
 
 /// 云端 Token 存储。
-/// - Debug：使用 UserDefaults，避免 Xcode 未签名构建反复弹出「登录钥匙串」密码框
-/// - Release：使用系统钥匙串，并设置 `kSecAttrAccessibleAfterFirstUnlock`
+/// - Debug / 本机未签名 Release：使用 UserDefaults，避免钥匙串权限问题
+/// - 正式签名的 Release：使用系统钥匙串
 enum KeychainStore {
     private static let service = "com.easytrans.pro.credentials"
     private static let defaultsPrefix = "com.easytrans.pro.credentials."
@@ -22,7 +22,7 @@ enum KeychainStore {
         UserDefaults.standard.set(true, forKey: migrationKey)
     }
 
-    static func save(_ value: String, account: Account) throws {
+    static func save(_ value: String, account: Account) {
         if prefersUserDefaults {
             UserDefaults.standard.set(value, forKey: defaultsKey(account))
             return
@@ -37,7 +37,9 @@ enum KeychainStore {
 
         let status = SecItemAdd(addQuery as CFDictionary, nil)
         guard status == errSecSuccess else {
-            throw KeychainError.unhandled(status)
+            // 本机 ad-hoc 构建常见 -34018 (errSecMissingEntitlement)，降级到 UserDefaults。
+            UserDefaults.standard.set(value, forKey: defaultsKey(account))
+            return
         }
     }
 
@@ -53,18 +55,17 @@ enum KeychainStore {
 
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
-        guard status == errSecSuccess,
-              let data = item as? Data,
-              let value = String(data: data, encoding: .utf8) else {
-            return nil
+        if status == errSecSuccess,
+           let data = item as? Data,
+           let value = String(data: data, encoding: .utf8) {
+            return value
         }
-        return value
+
+        return UserDefaults.standard.string(forKey: defaultsKey(account))
     }
 
     static func delete(account: Account) {
-        if prefersUserDefaults {
-            UserDefaults.standard.removeObject(forKey: defaultsKey(account))
-        }
+        UserDefaults.standard.removeObject(forKey: defaultsKey(account))
         deleteKeychainItem(account: account)
     }
 
@@ -76,11 +77,36 @@ enum KeychainStore {
 
     // MARK: - Private
 
-    #if DEBUG
-    private static let prefersUserDefaults = true
-    #else
-    private static let prefersUserDefaults = false
-    #endif
+    private static let prefersUserDefaults: Bool = {
+        #if DEBUG
+        return true
+        #else
+        return !hasDevelopmentTeamSignature
+        #endif
+    }()
+
+    /// 未配置 Development Team 的本地 Release 构建无法可靠使用钥匙串。
+    private static var hasDevelopmentTeamSignature: Bool {
+        guard let executableURL = Bundle.main.executableURL else { return false }
+
+        var staticCode: SecStaticCode?
+        guard SecStaticCodeCreateWithPath(executableURL as CFURL, [], &staticCode) == errSecSuccess,
+              let staticCode else {
+            return false
+        }
+
+        var signingInformation: CFDictionary?
+        let flags = SecCSFlags(rawValue: kSecCSDynamicInformation | kSecCSSigningInformation)
+        guard SecCodeCopySigningInformation(staticCode, flags, &signingInformation) == errSecSuccess,
+              let info = signingInformation as? [String: Any] else {
+            return false
+        }
+
+        if let teamID = info[kSecCodeInfoTeamIdentifier as String] as? String, !teamID.isEmpty {
+            return true
+        }
+        return false
+    }
 
     private static func defaultsKey(_ account: Account) -> String {
         defaultsPrefix + account.rawValue
@@ -109,16 +135,5 @@ enum KeychainStore {
             kSecAttrService as String: service
         ]
         SecItemDelete(query as CFDictionary)
-    }
-}
-
-enum KeychainError: LocalizedError {
-    case unhandled(OSStatus)
-
-    var errorDescription: String? {
-        switch self {
-        case let .unhandled(status):
-            return "钥匙串写入失败 (\(status))"
-        }
     }
 }

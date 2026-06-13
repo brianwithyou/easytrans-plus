@@ -39,7 +39,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		D10000010000000000000001 /* EasyTrans.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EasyTrans.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D10000010000000000000001 /* EasyTrans Plus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "EasyTrans Plus.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		F10000010000000000000001 /* EasyTransApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EasyTransApp.swift; sourceTree = "<group>"; };
 		F10000020000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F10000030000000000000003 /* Language.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Language.swift; sourceTree = "<group>"; };
@@ -161,7 +161,7 @@
 		C10000050000000000000005 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D10000010000000000000001 /* EasyTrans.app */,
+				D10000010000000000000001 /* EasyTrans Plus.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -182,8 +182,8 @@
 			dependencies = (
 			);
 			name = EasyTrans;
-			productName = EasyTrans;
-			productReference = D10000010000000000000001 /* EasyTrans.app */;
+			productName = "EasyTrans Plus";
+			productReference = D10000010000000000000001 /* EasyTrans Plus.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -290,6 +290,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/build";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -309,6 +310,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				SDKROOT = macosx;
+				SYMROOT = "$(SRCROOT)/build";
 				SWIFT_COMPILATION_MODE = wholemodule;
 			};
 			name = Release;
@@ -324,6 +326,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = EasyTrans/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -334,7 +337,7 @@
 				MARKETING_VERSION = 1.0;
 				INFOPLIST_KEY_CFBundleDisplayName = "EasyTrans Plus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.easytrans.pro;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "EasyTrans Plus";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -351,6 +354,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = EasyTrans/Info.plist;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -361,7 +365,7 @@
 				MARKETING_VERSION = 1.0;
 				INFOPLIST_KEY_CFBundleDisplayName = "EasyTrans Plus";
 				PRODUCT_BUNDLE_IDENTIFIER = com.easytrans.pro;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "EasyTrans Plus";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};

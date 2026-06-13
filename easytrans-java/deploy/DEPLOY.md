@@ -182,12 +182,17 @@ sudo ufw enable
 # 1. 健康检查
 curl https://api.yourdomain.com/api/v1/health
 
-# 2. 注册
+# 2. 发送注册验证码
+curl -X POST https://api.yourdomain.com/api/v1/auth/email/send-code \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"test@example.com","scene":"register"}'
+
+# 3. 注册（需邮件中的 6 位验证码；本地 dev 模式固定为 123456）
 curl -X POST https://api.yourdomain.com/api/v1/auth/register \
   -H 'Content-Type: application/json' \
-  -d '{"email":"test@example.com","password":"test123456"}'
+  -d '{"email":"test@example.com","password":"test123456","code":"123456"}'
 
-# 3. 登录
+# 4. 登录
 curl -X POST https://api.yourdomain.com/api/v1/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email":"test@example.com","password":"test123456"}'
@@ -204,6 +209,7 @@ curl -X POST https://api.yourdomain.com/api/v1/auth/login \
 - [ ] 修改 `deploy/.env` 中所有默认密码和密钥
 - [ ] 配置域名 + HTTPS（Let's Encrypt）
 - [ ] 至少配置一个 LLM API Key
+- [ ] 配置 Resend：`RESEND_API_KEY`、`RESEND_FROM`，并执行 `sql/02_email_verification_code.sql`（已有库升级）
 - [ ] 客户端 `云端服务 API 地址` 指向你的 HTTPS 域名
 - [ ] 云服务器安全组：只开放 22、80、443
 

@@ -346,9 +346,7 @@ final class QuickTranslateService: NSObject {
 
         let settings = AppSettings.shared
         guard settings.isConfigured else {
-            let hint = settings.translationMode == .byok
-                ? "请先在设置中配置 DashScope API Key"
-                : "请先在设置中登录云端服务"
+            let hint = "请先在设置中登录云端服务"
             showNotification(title: "EasyTrans Plus", body: hint)
             return
         }

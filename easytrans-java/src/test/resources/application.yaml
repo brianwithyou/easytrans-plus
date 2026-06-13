@@ -15,3 +15,6 @@ app:
     providers:
       - provider: dashscope
         api-key: test-api-key
+  email:
+    dev-mode: true
+    dev-code: "123456"
