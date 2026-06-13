@@ -194,7 +194,7 @@ struct SettingsView: View {
         do {
             billingConfig = try await client.fetchBillingConfig()
         } catch {
-            billingConfig = BillingConfigResponse(enabled: false, products: nil)
+            billingConfig = BillingConfigResponse(enabled: false, mode: nil, products: nil)
         }
     }
 
@@ -206,14 +206,32 @@ struct SettingsView: View {
         let client = CloudAPIClient(baseURL: settings.cloudBaseURL)
         do {
             let checkout = try await client.fetchCheckoutURL(variantId: variantId)
-            guard let url = URL(string: checkout.checkoutUrl) else {
+            let checkoutUrl = checkout.checkoutUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !checkoutUrl.isEmpty else {
                 billingMessage = "无效的付款链接"
                 return
             }
-            NSWorkspace.shared.open(url)
+            guard openExternalURL(checkoutUrl) else {
+                billingMessage = "无法打开付款链接"
+                return
+            }
             billingMessage = "已在浏览器打开付款页面，完成后请点击「刷新账号信息」。"
         } catch {
             billingMessage = error.localizedDescription
+        }
+    }
+
+    /// Opens a fully-formed HTTP(S) URL without re-encoding query parameters.
+    /// `URL(string:)` would turn `%40` into `%2540` and break Lemon Squeezy checkout links.
+    private func openExternalURL(_ urlString: String) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        process.arguments = [urlString]
+        do {
+            try process.run()
+            return true
+        } catch {
+            return false
         }
     }
 }

@@ -3,6 +3,7 @@ package com.brian.easytrans.service;
 import com.brian.easytrans.common.BusinessException;
 import com.brian.easytrans.common.DeleteFlagConstants;
 import com.brian.easytrans.config.AppProperties;
+import com.brian.easytrans.config.BillingConfigProvider;
 import com.brian.easytrans.entity.AppUser;
 import com.brian.easytrans.entity.BillingOrderEntity;
 import com.brian.easytrans.util.AuditFillHelper;
@@ -25,19 +26,19 @@ public class LemonSqueezyWebhookService {
 
     private static final Logger log = LoggerFactory.getLogger(LemonSqueezyWebhookService.class);
 
-    private final AppProperties appProperties;
+    private final BillingConfigProvider billingConfigProvider;
     private final AppUserDao appUserDao;
     private final BillingOrderDao billingOrderDao;
     private final PlanService planService;
     private final ObjectMapper objectMapper;
 
     public LemonSqueezyWebhookService(
-            AppProperties appProperties,
+            BillingConfigProvider billingConfigProvider,
             AppUserDao appUserDao,
             BillingOrderDao billingOrderDao,
             PlanService planService,
             ObjectMapper objectMapper) {
-        this.appProperties = appProperties;
+        this.billingConfigProvider = billingConfigProvider;
         this.appUserDao = appUserDao;
         this.billingOrderDao = billingOrderDao;
         this.planService = planService;
@@ -45,11 +46,11 @@ public class LemonSqueezyWebhookService {
     }
 
     public void verifySignature(byte[] rawBody, String signatureHeader) {
-        if (!appProperties.getBilling().isEnabled()) {
+        if (!billingConfigProvider.getBilling().isEnabled()) {
             throw new BusinessException("Billing disabled", HttpStatus.NOT_FOUND);
         }
 
-        String secret = appProperties.getBilling().getLemonSqueezy().getWebhookSecret();
+        String secret = billingConfigProvider.getBilling().getLemonSqueezy().getWebhookSecret();
         if (!StringUtils.hasText(secret)) {
             throw new BusinessException("Webhook secret not configured", HttpStatus.SERVICE_UNAVAILABLE);
         }
@@ -94,7 +95,7 @@ public class LemonSqueezyWebhookService {
             log.info("billing webhook skip unpaid orderId={} status={}", orderId, status);
             return;
         }
-        if (testMode && !appProperties.getBilling().getLemonSqueezy().isAllowTestMode()) {
+        if (testMode && !billingConfigProvider.getBilling().getLemonSqueezy().isAllowTestMode()) {
             log.warn("billing webhook skip test orderId={}", orderId);
             return;
         }
@@ -114,7 +115,7 @@ public class LemonSqueezyWebhookService {
             throw new BusinessException("Missing variant id", HttpStatus.BAD_REQUEST);
         }
 
-        AppProperties.BillingProduct product = appProperties.getBilling().findProductByVariantId(variantId)
+        AppProperties.BillingProduct product = billingConfigProvider.getBilling().findProductByVariantId(variantId)
                 .orElseThrow(() -> new BusinessException("Unknown variant: " + variantId, HttpStatus.BAD_REQUEST));
 
         AppUser user = resolveUser(root, attributes).orElseThrow(() -> {

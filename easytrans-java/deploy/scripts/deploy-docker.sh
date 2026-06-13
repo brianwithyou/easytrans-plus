@@ -63,6 +63,8 @@ RUN_ARGS=(
 )
 append_docker_app_env
 
+RUN_ARGS+=(-v "${DEPLOY_DIR}/.env:/app/config/runtime.env:ro")
+
 # 日志持久化：默认 Docker 卷；或 .env 设置 LOG_HOST_PATH=/var/log/easytrans
 if [[ -n "${LOG_HOST_PATH:-}" ]]; then
   mkdir -p "${LOG_HOST_PATH}"

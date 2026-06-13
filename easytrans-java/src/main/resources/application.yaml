@@ -58,6 +58,7 @@ app:
       from: ${RESEND_FROM:EasyTrans <onboarding@resend.dev>}
   billing:
     enabled: ${BILLING_ENABLED:false}
+    runtime-config-path: ${BILLING_RUNTIME_CONFIG_PATH:}
     free-plan:
       name: 基础版
       daily-quota: 50000

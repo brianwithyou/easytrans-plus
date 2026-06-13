@@ -221,6 +221,7 @@ public class AppProperties {
 
     public static class Billing {
         private boolean enabled = false;
+        private String runtimeConfigPath;
         private final FreePlan freePlan = new FreePlan();
         private final UnpaidPlan unpaidPlan = new UnpaidPlan();
         private final LemonSqueezy lemonSqueezy = new LemonSqueezy();
@@ -232,6 +233,14 @@ public class AppProperties {
 
         public void setEnabled(boolean enabled) {
             this.enabled = enabled;
+        }
+
+        public String getRuntimeConfigPath() {
+            return runtimeConfigPath;
+        }
+
+        public void setRuntimeConfigPath(String runtimeConfigPath) {
+            this.runtimeConfigPath = runtimeConfigPath;
         }
 
         public FreePlan getFreePlan() {

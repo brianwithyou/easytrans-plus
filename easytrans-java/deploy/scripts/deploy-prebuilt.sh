@@ -60,6 +60,8 @@ RUN_ARGS=(
 )
 append_docker_app_env
 
+RUN_ARGS+=(-v "${DEPLOY_DIR}/.env:/app/config/runtime.env:ro")
+
 if [[ -n "${LOG_HOST_PATH:-}" ]]; then
   mkdir -p "${LOG_HOST_PATH}"
   # 容器内 easytrans 用户固定 UID 10001

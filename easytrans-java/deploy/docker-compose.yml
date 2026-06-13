@@ -31,6 +31,9 @@ services:
       BILLING_DURATION_DAYS: ${BILLING_DURATION_DAYS:-30}
       BILLING_PRODUCT_LABEL: ${BILLING_PRODUCT_LABEL:-基础版（1个月）}
       BILLING_CHECKOUT_URL: ${BILLING_CHECKOUT_URL:-}
+      BILLING_RUNTIME_CONFIG_PATH: ${BILLING_RUNTIME_CONFIG_PATH:-/app/config/runtime.env}
+    volumes:
+      - ./.env:/app/config/runtime.env:ro
     ports:
       - "${API_PORT:-9091}:9091"
     healthcheck:

@@ -13,6 +13,7 @@ app:
       from: ${RESEND_FROM:}
   billing:
     enabled: ${BILLING_ENABLED:false}
+    runtime-config-path: ${BILLING_RUNTIME_CONFIG_PATH:/app/config/runtime.env}
     free-plan:
       name: ${BILLING_FREE_PLAN_NAME:基础版}
       daily-quota: ${BILLING_FREE_PLAN_DAILY_QUOTA:50000}
