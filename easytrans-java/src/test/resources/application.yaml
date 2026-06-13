@@ -1,0 +1,17 @@
+# 单元测试专用配置，覆盖主配置中的敏感项占位符，且不加载 application-local.yaml
+spring:
+  config:
+    import: ""
+  datasource:
+    url: jdbc:mysql://localhost:3306/easytrans?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    username: root
+    password: ${MYSQL_PASSWORD:}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+app:
+  jwt:
+    secret: test-jwt-secret-for-unit-tests-only-32c
+  llm:
+    providers:
+      - provider: dashscope
+        api-key: test-api-key

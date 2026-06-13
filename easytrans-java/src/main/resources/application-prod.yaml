@@ -1,0 +1,8 @@
+spring:
+  mybatis-plus:
+    configuration:
+      log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+
+app:
+  cors:
+    allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:*}
