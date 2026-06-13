@@ -1,0 +1,6 @@
+.git/
+.idea/
+*.iml
+deploy/.env
+target/**
+!target/easytrans-java-*.jar

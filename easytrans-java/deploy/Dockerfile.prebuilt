@@ -1,17 +1,4 @@
-FROM maven:3.9.16-eclipse-temurin-25 AS build
-
-WORKDIR /workspace
-
-# 国内 Maven 镜像，加速依赖下载
-COPY deploy/maven/settings.xml /root/.m2/settings.xml
-
-# 先只复制 pom，缓存依赖层
-COPY pom.xml .
-RUN mvn -B -DskipTests dependency:go-offline
-
-COPY src ./src
-RUN mvn -B -DskipTests package
-
+# 仅打包已构建的 JAR（在 Mac 本地 mvn package 后上传，服务器无需拉 Maven 依赖）
 FROM eclipse-temurin:25-jre-jammy
 
 WORKDIR /app
@@ -20,7 +7,7 @@ RUN useradd --system --create-home --home-dir /app --shell /usr/sbin/nologin eas
     && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY --from=build /workspace/target/easytrans-java-*.jar /app/app.jar
+COPY target/easytrans-java-*.jar /app/app.jar
 RUN chown easytrans:easytrans /app/app.jar
 
 USER easytrans
