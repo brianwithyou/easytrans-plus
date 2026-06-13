@@ -16,7 +16,14 @@ JAR_FILE="$(ls "${JAVA_DIR}"/target/easytrans-java-*.jar 2>/dev/null | head -1 |
 if [[ -z "${JAR_FILE}" ]]; then
   echo "错误: 未找到 target/easytrans-java-*.jar"
   echo
-  echo "请先在本地（Mac）构建并上传："
+  echo "在服务器上构建并部署（推荐）："
+  echo "  ./scripts/deploy-server.sh"
+  echo
+  echo "或分步执行："
+  echo "  ./scripts/build-jar-on-server.sh"
+  echo "  ./scripts/deploy-prebuilt.sh"
+  echo
+  echo "或在 Mac 构建后上传："
   echo "  cd easytrans-java && mvn -DskipTests package"
   echo "  scp target/easytrans-java-*.jar root@服务器:/opt/easytrans-plus/easytrans-java/target/"
   exit 1
