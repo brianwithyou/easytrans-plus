@@ -39,6 +39,18 @@
 		B100001E000000000000001E /* AuthPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001E000000000000001E /* AuthPanelView.swift */; };
 		B100001F000000000000001F /* KeyboardShortcut.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100001F000000000000001F /* KeyboardShortcut.swift */; };
 		B10000200000000000000020 /* ShortcutRecorderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000200000000000000020 /* ShortcutRecorderView.swift */; };
+		B10000210000000000000021 /* ProcessSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000210000000000000021 /* ProcessSnapshot.swift */; };
+		B10000220000000000000022 /* SystemMonitorSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000220000000000000022 /* SystemMonitorSettings.swift */; };
+		B10000230000000000000023 /* SystemMetricsCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000230000000000000023 /* SystemMetricsCollector.swift */; };
+		B10000240000000000000024 /* ProcessTerminator.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000240000000000000024 /* ProcessTerminator.swift */; };
+		B10000250000000000000025 /* ResourceAlertPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000250000000000000025 /* ResourceAlertPanelView.swift */; };
+		B10000260000000000000026 /* SystemMonitorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000260000000000000026 /* SystemMonitorService.swift */; };
+		B10000270000000000000027 /* MenuBarLabelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000270000000000000027 /* MenuBarLabelView.swift */; };
+		B100002A000000000000002A /* ChromeTabEnrichmentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100002A000000000000002A /* ChromeTabEnrichmentService.swift */; };
+		B10000280000000000000028 /* DeviceInfoCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000280000000000000028 /* DeviceInfoCollector.swift */; };
+		B10000290000000000000029 /* DeviceReportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000290000000000000029 /* DeviceReportService.swift */; };
+		B100002B000000000000002B /* StickyNoteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100002B000000000000002B /* StickyNoteService.swift */; };
+		B100002C000000000000002C /* StickyNoteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F100002C000000000000002C /* StickyNoteView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -75,6 +87,18 @@
 		F100001E000000000000001E /* AuthPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthPanelView.swift; sourceTree = "<group>"; };
 		F100001F000000000000001F /* KeyboardShortcut.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardShortcut.swift; sourceTree = "<group>"; };
 		F10000200000000000000020 /* ShortcutRecorderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutRecorderView.swift; sourceTree = "<group>"; };
+		F10000210000000000000021 /* ProcessSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessSnapshot.swift; sourceTree = "<group>"; };
+		F10000220000000000000022 /* SystemMonitorSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorSettings.swift; sourceTree = "<group>"; };
+		F10000230000000000000023 /* SystemMetricsCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMetricsCollector.swift; sourceTree = "<group>"; };
+		F10000240000000000000024 /* ProcessTerminator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessTerminator.swift; sourceTree = "<group>"; };
+		F10000250000000000000025 /* ResourceAlertPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceAlertPanelView.swift; sourceTree = "<group>"; };
+		F10000260000000000000026 /* SystemMonitorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemMonitorService.swift; sourceTree = "<group>"; };
+		F10000270000000000000027 /* MenuBarLabelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarLabelView.swift; sourceTree = "<group>"; };
+		F100002A000000000000002A /* ChromeTabEnrichmentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChromeTabEnrichmentService.swift; sourceTree = "<group>"; };
+		F10000280000000000000028 /* DeviceInfoCollector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceInfoCollector.swift; sourceTree = "<group>"; };
+		F10000290000000000000029 /* DeviceReportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceReportService.swift; sourceTree = "<group>"; };
+		F100002B000000000000002B /* StickyNoteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickyNoteService.swift; sourceTree = "<group>"; };
+		F100002C000000000000002C /* StickyNoteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StickyNoteView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +128,8 @@
 				C10000020000000000000002 /* Models */,
 				C10000030000000000000003 /* Services */,
 				C10000060000000000000006 /* ClipboardHistory */,
+				C10000080000000000000008 /* StickyNote */,
+				C10000070000000000000007 /* SystemMonitor */,
 				C10000040000000000000004 /* Views */,
 				F10000080000000000000008 /* Assets.xcassets */,
 			);
@@ -136,6 +162,8 @@
 				F100001B000000000000001B /* TranslationProvider.swift */,
 				F100001C000000000000001C /* CloudAPIClient.swift */,
 				F100001D000000000000001D /* CloudAuthService.swift */,
+				F10000280000000000000028 /* DeviceInfoCollector.swift */,
+				F10000290000000000000029 /* DeviceReportService.swift */,
 				F100000A000000000000000A /* QuickTranslateService.swift */,
 				F100000B000000000000000B /* TextClassifier.swift */,
 				F100000C000000000000000C /* AccessibilityHelper.swift */,
@@ -155,6 +183,30 @@
 				F10000130000000000000013 /* ClipboardHistoryPanelRootView.swift */,
 			);
 			path = ClipboardHistory;
+			sourceTree = "<group>";
+		};
+		C10000080000000000000008 /* StickyNote */ = {
+			isa = PBXGroup;
+			children = (
+				F100002B000000000000002B /* StickyNoteService.swift */,
+				F100002C000000000000002C /* StickyNoteView.swift */,
+			);
+			path = StickyNote;
+			sourceTree = "<group>";
+		};
+		C10000070000000000000007 /* SystemMonitor */ = {
+			isa = PBXGroup;
+			children = (
+				F10000210000000000000021 /* ProcessSnapshot.swift */,
+				F10000220000000000000022 /* SystemMonitorSettings.swift */,
+				F10000230000000000000023 /* SystemMetricsCollector.swift */,
+				F10000240000000000000024 /* ProcessTerminator.swift */,
+				F10000250000000000000025 /* ResourceAlertPanelView.swift */,
+				F10000260000000000000026 /* SystemMonitorService.swift */,
+				F10000270000000000000027 /* MenuBarLabelView.swift */,
+				F100002A000000000000002A /* ChromeTabEnrichmentService.swift */,
+			);
+			path = SystemMonitor;
 			sourceTree = "<group>";
 		};
 		C10000040000000000000004 /* Views */ = {
@@ -275,6 +327,18 @@
 				B100001E000000000000001E /* AuthPanelView.swift in Sources */,
 				B100001F000000000000001F /* KeyboardShortcut.swift in Sources */,
 				B10000200000000000000020 /* ShortcutRecorderView.swift in Sources */,
+				B10000210000000000000021 /* ProcessSnapshot.swift in Sources */,
+				B10000220000000000000022 /* SystemMonitorSettings.swift in Sources */,
+				B10000230000000000000023 /* SystemMetricsCollector.swift in Sources */,
+				B10000240000000000000024 /* ProcessTerminator.swift in Sources */,
+				B10000250000000000000025 /* ResourceAlertPanelView.swift in Sources */,
+				B10000260000000000000026 /* SystemMonitorService.swift in Sources */,
+				B10000270000000000000027 /* MenuBarLabelView.swift in Sources */,
+				B100002A000000000000002A /* ChromeTabEnrichmentService.swift in Sources */,
+				B10000280000000000000028 /* DeviceInfoCollector.swift in Sources */,
+				B10000290000000000000029 /* DeviceReportService.swift in Sources */,
+				B100002B000000000000002B /* StickyNoteService.swift in Sources */,
+				B100002C000000000000002C /* StickyNoteView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

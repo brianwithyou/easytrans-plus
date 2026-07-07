@@ -51,6 +51,7 @@ final class CloudAuthService: ObservableObject {
                 KeychainStore.save(email, account: .accountEmail)
             }
             isLoggedIn = true
+            DeviceReportService.shared.reportIfVersionChanged(settings: settings)
         } catch {
             // 保留本地登录态，等待用户手动刷新或下次翻译时自动 refresh。
         }
@@ -67,6 +68,7 @@ final class CloudAuthService: ObservableObject {
         persistSession(response: response, email: trimmedEmail)
         settings.cloudAccount = response.toCloudAccount(fallbackEmail: trimmedEmail)
         isLoggedIn = true
+        DeviceReportService.shared.reportOnLogin(settings: settings)
     }
 
     func register(email: String, password: String, code: String, settings: AppSettings) async throws {
@@ -84,6 +86,7 @@ final class CloudAuthService: ObservableObject {
         persistSession(response: response, email: trimmedEmail)
         settings.cloudAccount = response.toCloudAccount(fallbackEmail: trimmedEmail)
         isLoggedIn = true
+        DeviceReportService.shared.reportOnLogin(settings: settings)
     }
 
     func sendRegisterCode(email: String, settings: AppSettings) async throws {
@@ -108,6 +111,7 @@ final class CloudAuthService: ObservableObject {
         persistSession(response: response, email: email)
         settings.cloudAccount = response.toCloudAccount(fallbackEmail: email)
         isLoggedIn = true
+        DeviceReportService.shared.reportOnLogin(settings: settings)
     }
 
     func refreshProfile(settings: AppSettings) async throws {

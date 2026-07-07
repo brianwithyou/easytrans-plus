@@ -6,6 +6,7 @@ struct ClipboardHistoryView: View {
     @ObservedObject var store: ClipboardHistoryStore
     @ObservedObject private var shortcutSettings = KeyboardShortcutSettings.shared
     var onPaste: (ClipboardHistoryItem) -> Void
+    var onCopy: (ClipboardHistoryItem) -> Void
     var onDismiss: () -> Void
 
     private var filteredItems: [ClipboardHistoryItem] {
@@ -89,9 +90,11 @@ struct ClipboardHistoryView: View {
         ScrollView {
             LazyVStack(spacing: 4) {
                 ForEach(filteredItems) { item in
-                    ClipboardHistoryRow(item: item) {
-                        onPaste(item)
-                    }
+                    ClipboardHistoryRow(
+                        item: item,
+                        onDoubleClick: { onPaste(item) },
+                        onCopy: { onCopy(item) }
+                    )
                 }
             }
             .padding(.horizontal, 10)
@@ -136,27 +139,50 @@ struct ClipboardHistoryView: View {
 private struct ClipboardHistoryRow: View {
     let item: ClipboardHistoryItem
     let onDoubleClick: () -> Void
+    let onCopy: () -> Void
 
     @State private var isHovered = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            Image(systemName: "text.alignleft")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-                .frame(width: 16, alignment: .center)
-                .padding(.top, 2)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(item.preview)
-                    .font(.callout)
-                    .lineLimit(2)
-                    .foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                Text(item.absoluteTimeText)
-                    .font(.caption2)
+        HStack(alignment: .top, spacing: 8) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "text.alignleft")
+                    .font(.caption)
                     .foregroundStyle(.tertiary)
+                    .frame(width: 16, alignment: .center)
+                    .padding(.top, 2)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(item.preview)
+                        .font(.callout)
+                        .lineLimit(2)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text(item.absoluteTimeText)
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay {
+                ClipboardHistoryRowInteractionDetector(
+                    onDoubleClick: onDoubleClick,
+                    onCopy: onCopy
+                )
+            }
+
+            Button {
+                onCopy()
+            } label: {
+                Image(systemName: "doc.on.doc")
+                    .font(.caption)
+                    .foregroundStyle(isHovered ? .secondary : .tertiary)
+                    .frame(width: 24, height: 24)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.borderless)
+            .help("复制")
+            .opacity(isHovered ? 1 : 0.55)
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 9)
@@ -166,8 +192,12 @@ private struct ClipboardHistoryRow: View {
         }
         .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .onHover { isHovered = $0 }
-        .overlay {
-            DoubleClickDetector(onDoubleClick: onDoubleClick)
+        .contextMenu {
+            Button {
+                onCopy()
+            } label: {
+                Label("复制", systemImage: "doc.on.doc")
+            }
         }
         .help("双击粘贴")
     }
@@ -175,24 +205,45 @@ private struct ClipboardHistoryRow: View {
 
 /// 铺满 overlay 并接收鼠标事件，避免零尺寸 NSView 吞不掉双击。
 private final class ClipboardHistoryClickView: NSView {
+    var onCopy: (() -> Void)?
+
     override var isFlipped: Bool { true }
 
     override func hitTest(_ point: NSPoint) -> NSView? {
         bounds.contains(point) ? self : nil
     }
+
+    override func rightMouseDown(with event: NSEvent) {
+        guard let onCopy else {
+            super.rightMouseDown(with: event)
+            return
+        }
+
+        let menu = NSMenu()
+        let copyItem = NSMenuItem(title: "复制", action: #selector(copyFromContextMenu), keyEquivalent: "")
+        copyItem.target = self
+        menu.addItem(copyItem)
+        NSMenu.popUpContextMenu(menu, with: event, for: self)
+    }
+
+    @objc private func copyFromContextMenu() {
+        onCopy?()
+    }
 }
 
-/// AppKit-level double-click detection; SwiftUI `onTapGesture(count: 2)` is unreliable inside ScrollView on macOS.
-private struct DoubleClickDetector: NSViewRepresentable {
+/// AppKit-level row interaction; SwiftUI gestures are unreliable inside ScrollView on macOS.
+private struct ClipboardHistoryRowInteractionDetector: NSViewRepresentable {
     let onDoubleClick: () -> Void
+    let onCopy: () -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(onDoubleClick: onDoubleClick)
+        Coordinator(onDoubleClick: onDoubleClick, onCopy: onCopy)
     }
 
     func makeNSView(context: Context) -> ClipboardHistoryClickView {
         let view = ClipboardHistoryClickView(frame: .zero)
         view.autoresizingMask = [.width, .height]
+        view.onCopy = context.coordinator.handleCopy
         let recognizer = NSClickGestureRecognizer(
             target: context.coordinator,
             action: #selector(Coordinator.handleDoubleClick)
@@ -204,17 +255,25 @@ private struct DoubleClickDetector: NSViewRepresentable {
 
     func updateNSView(_ nsView: ClipboardHistoryClickView, context: Context) {
         context.coordinator.onDoubleClick = onDoubleClick
+        context.coordinator.onCopy = onCopy
+        nsView.onCopy = context.coordinator.handleCopy
     }
 
     final class Coordinator: NSObject {
         var onDoubleClick: () -> Void
+        var onCopy: () -> Void
 
-        init(onDoubleClick: @escaping () -> Void) {
+        init(onDoubleClick: @escaping () -> Void, onCopy: @escaping () -> Void) {
             self.onDoubleClick = onDoubleClick
+            self.onCopy = onCopy
         }
 
         @objc func handleDoubleClick() {
             onDoubleClick()
+        }
+
+        @objc func handleCopy() {
+            onCopy()
         }
     }
 }

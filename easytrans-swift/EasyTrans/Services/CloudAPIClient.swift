@@ -56,6 +56,29 @@ struct CloudAPIClient: Sendable {
         try await getJSON(path: "/api/v1/billing/config", authorized: false)
     }
 
+    func reportDevice(_ report: ClientDeviceReport) async throws {
+        let body: [String: Any?] = [
+            "deviceId": report.deviceId,
+            "appVersion": report.appVersion,
+            "osVersion": report.osVersion,
+            "platform": report.platform,
+            "architecture": report.architecture,
+            "screenSize": report.screenSize,
+            "locale": report.locale,
+            "timezone": report.timezone,
+            "gpuName": report.gpuName,
+            "memoryBytes": report.memoryBytes,
+            "cpuCores": report.cpuCores,
+            "cpuBrand": report.cpuBrand
+        ]
+        let compactBody = body.compactMapValues { $0 }
+        let _: DeviceReportResponse = try await postJSON(
+            path: "/api/v1/device/report",
+            body: compactBody,
+            authorized: true
+        )
+    }
+
     func fetchCheckoutURL(variantId: String) async throws -> BillingCheckoutResponse {
         let encoded = variantId.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? variantId
         return try await getJSON(path: "/api/v1/billing/checkout?variantId=\(encoded)", authorized: true)
@@ -231,4 +254,8 @@ struct CloudAPIClient: Sendable {
         }
         return nil
     }
+}
+
+private struct DeviceReportResponse: Decodable, Sendable {
+    let success: Bool?
 }

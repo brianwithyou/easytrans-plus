@@ -5,6 +5,8 @@ struct SettingsView: View {
     @EnvironmentObject private var settings: AppSettings
     @ObservedObject private var cloudAuth = CloudAuthService.shared
     @ObservedObject private var shortcutSettings = KeyboardShortcutSettings.shared
+    @ObservedObject private var systemMonitorSettings = SystemMonitorSettings.shared
+    @ObservedObject private var systemMonitor = SystemMonitorService.shared
     @State private var accessibilityTrusted = AccessibilityHelper.isTrusted
     @State private var authMessage: String?
     @State private var isAuthBusy = false
@@ -22,12 +24,13 @@ struct SettingsView: View {
                 }
 
                 shortcutSection
+                systemMonitorSection
                 accessibilitySection
             }
             .formStyle(.grouped)
             .padding(20)
         }
-        .frame(width: 540, height: 560)
+        .frame(width: 540, height: 680)
         .onAppear {
             refreshAccessibilityStatus()
             settings.refreshLaunchAtLoginStatus()
@@ -122,6 +125,53 @@ struct SettingsView: View {
                     candidate.validationError(conflictingWith: shortcutSettings.translateShortcut)
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private var systemMonitorSection: some View {
+        Section("系统监控") {
+            Toggle("启用资源告警", isOn: $systemMonitorSettings.isMonitoringEnabled)
+            Toggle("菜单栏显示 CPU / 内存", isOn: $systemMonitorSettings.showMenuBarStats)
+
+            LabeledContent("当前占用") {
+                Text(String(format: "CPU %.0f%% · 内存 %.0f%%", systemMonitor.systemCPUPercent, systemMonitor.systemMemoryPercent))
+                    .monospacedDigit()
+            }
+
+            LabeledContent("CPU 告警阈值") {
+                HStack(spacing: 8) {
+                    Slider(value: $systemMonitorSettings.cpuThreshold, in: 50...99, step: 1)
+                    Text("\(Int(systemMonitorSettings.cpuThreshold))%")
+                        .monospacedDigit()
+                        .frame(width: 36, alignment: .trailing)
+                }
+            }
+
+            LabeledContent("内存告警阈值") {
+                HStack(spacing: 8) {
+                    Slider(value: $systemMonitorSettings.memoryThreshold, in: 50...99, step: 1)
+                    Text("\(Int(systemMonitorSettings.memoryThreshold))%")
+                        .monospacedDigit()
+                        .frame(width: 36, alignment: .trailing)
+                }
+            }
+
+            LabeledContent("检测间隔") {
+                Stepper(value: $systemMonitorSettings.pollIntervalSeconds, in: 3...30) {
+                    Text("\(systemMonitorSettings.pollIntervalSeconds) 秒")
+                }
+            }
+
+            LabeledContent("告警冷却") {
+                Stepper(value: $systemMonitorSettings.alertCooldownMinutes, in: 1...60) {
+                    Text("\(systemMonitorSettings.alertCooldownMinutes) 分钟")
+                }
+            }
+
+            Text("超过阈值时会发送系统通知，并自动弹出进程列表。不会自动结束任何进程。")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 

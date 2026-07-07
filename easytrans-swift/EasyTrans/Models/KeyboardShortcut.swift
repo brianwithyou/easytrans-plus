@@ -26,6 +26,14 @@ struct KeyboardShortcut: Codable, Equatable, Hashable, Sendable {
         control: false
     )
 
+    static let stickyNoteDefault = KeyboardShortcut(
+        keyCode: UInt16(kVK_ANSI_S),
+        command: true,
+        shift: true,
+        option: false,
+        control: false
+    )
+
     /// 系统设置窗口（⌘ ,）
     static let openSettings = KeyboardShortcut(
         keyCode: UInt16(kVK_ANSI_Comma),

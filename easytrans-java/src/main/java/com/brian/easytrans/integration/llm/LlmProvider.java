@@ -1,7 +1,7 @@
 package com.brian.easytrans.integration.llm;
 
 public enum LlmProvider {
-    DASHSCOPE("dashscope", "https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen-plus"),
+    DASHSCOPE("dashscope", "https://dashscope.aliyuncs.com/compatible-mode/v1", "qwen3.7-plus"),
     MIMO("mimo", "https://api.xiaomimimo.com/v1", "mimo-v2-flash"),
     DEEPSEEK("deepseek", "https://api.deepseek.com", "deepseek-v4-flash");
 

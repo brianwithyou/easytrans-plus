@@ -18,7 +18,7 @@ app:
       - provider: dashscope
         api-key: sk-your-dashscope-key
         # base-url: https://dashscope.aliyuncs.com/compatible-mode/v1
-        # model: qwen-plus
+        # model: qwen3.7-plus
   email:
     dev-mode: true
     dev-code: "123456"

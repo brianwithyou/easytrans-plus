@@ -304,6 +304,7 @@ private struct PlaceholderTextEditor: NSViewRepresentable {
         textView.drawsBackground = false
         textView.isEditable = true
         textView.isSelectable = true
+        textView.allowsUndo = true
         textView.isHorizontallyResizable = false
         textView.isVerticallyResizable = true
         textView.autoresizingMask = [.width]
@@ -326,8 +327,11 @@ private struct PlaceholderTextEditor: NSViewRepresentable {
         if textView.placeholder != placeholder {
             textView.placeholder = placeholder
         }
+        guard !context.coordinator.isUpdatingFromTextView else { return }
         if textView.string != text {
+            context.coordinator.isUpdatingFromBinding = true
             textView.string = text
+            context.coordinator.isUpdatingFromBinding = false
         }
     }
 
@@ -338,6 +342,8 @@ private struct PlaceholderTextEditor: NSViewRepresentable {
     final class Coordinator: NSObject, NSTextViewDelegate {
         @Binding var text: String
         weak var textView: PlaceholderNSTextView?
+        var isUpdatingFromBinding = false
+        var isUpdatingFromTextView = false
 
         init(text: Binding<String>) {
             _text = text
@@ -345,7 +351,10 @@ private struct PlaceholderTextEditor: NSViewRepresentable {
 
         func textDidChange(_ notification: Notification) {
             guard let textView = notification.object as? PlaceholderNSTextView else { return }
+            guard !isUpdatingFromBinding else { return }
+            isUpdatingFromTextView = true
             text = textView.string
+            isUpdatingFromTextView = false
             textView.needsDisplay = true
         }
     }
@@ -358,6 +367,30 @@ private final class PlaceholderNSTextView: NSTextView {
 
     override var string: String {
         didSet { needsDisplay = true }
+    }
+
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        guard allowsUndo, event.modifierFlags.contains(.command),
+              let key = event.charactersIgnoringModifiers?.lowercased() else {
+            return super.performKeyEquivalent(with: event)
+        }
+
+        switch key {
+        case "z":
+            if event.modifierFlags.contains(.shift) {
+                if undoManager?.canRedo == true {
+                    undoManager?.redo()
+                    return true
+                }
+            } else if undoManager?.canUndo == true {
+                undoManager?.undo()
+                return true
+            }
+        default:
+            break
+        }
+
+        return super.performKeyEquivalent(with: event)
     }
 
     override func draw(_ dirtyRect: NSRect) {

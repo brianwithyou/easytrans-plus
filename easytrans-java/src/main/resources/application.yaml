@@ -43,6 +43,7 @@ app:
     providers:
       - provider: dashscope
         api-key: ${DASHSCOPE_API_KEY:}
+        model: ${DASHSCOPE_MODEL:qwen3.7-plus}
       - provider: mimo
         api-key: ${MIMO_API_KEY:}
       - provider: deepseek

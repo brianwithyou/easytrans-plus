@@ -465,6 +465,9 @@ final class ClipboardHistoryService: NSObject {
             onPaste: { [weak self] item in
                 self?.paste(item)
             },
+            onCopy: { [weak self] item in
+                self?.copy(item)
+            },
             onDismiss: { [weak self] in
                 self?.closePanel()
             }
@@ -694,7 +697,21 @@ final class ClipboardHistoryService: NSObject {
         closePanel()
     }
 
-    // MARK: - Paste
+    // MARK: - Copy & Paste
+
+    @MainActor
+    private func copy(_ item: ClipboardHistoryItem) {
+        guard !item.text.isEmpty else {
+            logger.debug("Copy ignored — empty clipboard history item")
+            return
+        }
+
+        ClipboardHistoryStore.shared.preparePasteboardUpdate()
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(item.text, forType: .string)
+        logger.info("Copied clipboard history item to pasteboard (\(item.text.count, privacy: .public) chars)")
+    }
 
     @MainActor
     private func paste(_ item: ClipboardHistoryItem) {

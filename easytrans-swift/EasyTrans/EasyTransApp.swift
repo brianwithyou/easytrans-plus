@@ -18,6 +18,15 @@ struct MenuBarContent: View {
         }
         .keyboardShortcut(shortcutSettings.clipboardHistoryShortcut)
 
+        Button("系统资源…") {
+            SystemMonitorService.shared.showPanelFromMenu()
+        }
+
+        Button("新建便签") {
+            StickyNoteService.shared.createNoteFromMenu()
+        }
+        .keyboardShortcut(.stickyNoteDefault)
+
         Button("打开主窗口") {
             openMainWindow()
         }
@@ -54,6 +63,7 @@ struct MenuBarContent: View {
         Button("刷新快捷键") {
             QuickTranslateService.shared.refreshListeners()
             ClipboardHistoryService.shared.refreshListeners()
+            StickyNoteService.shared.refreshListeners()
         }
 
         Divider()
@@ -147,12 +157,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.async {
             QuickTranslateService.shared.start()
             ClipboardHistoryService.shared.start()
+            SystemMonitorService.shared.start()
+            StickyNoteService.shared.start()
         }
     }
 
     func applicationDidBecomeActive(_ notification: Notification) {
         QuickTranslateService.shared.refreshListeners()
         ClipboardHistoryService.shared.refreshListeners()
+        StickyNoteService.shared.refreshListeners()
     }
 
     func applicationWillTerminate(_ notification: Notification) {
@@ -160,6 +173,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         ClipboardHistoryStore.shared.flushToDisk()
         QuickTranslateService.shared.stop()
         ClipboardHistoryService.shared.stop()
+        SystemMonitorService.shared.stop()
+        StickyNoteService.shared.stop()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -185,8 +200,10 @@ struct EasyTransApp: App {
         .defaultSize(width: 900, height: 640)
         .handlesExternalEvents(matching: Set(arrayLiteral: "*", "easytrans"))
 
-        MenuBarExtra("EasyTrans Plus", systemImage: "character.bubble") {
+        MenuBarExtra {
             MenuBarContent()
+        } label: {
+            MenuBarLabelView()
         }
         .menuBarExtraStyle(.menu)
 
@@ -206,6 +223,12 @@ struct EasyTransApp: App {
                     ClipboardHistoryService.shared.showFromMenu()
                 }
                 .keyboardShortcut("v", modifiers: [.command, .shift])
+            }
+            CommandMenu("便签") {
+                Button("新建便签") {
+                    StickyNoteService.shared.createNoteFromMenu()
+                }
+                .keyboardShortcut("s", modifiers: [.command, .shift])
             }
         }
     }
