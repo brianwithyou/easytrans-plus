@@ -16,6 +16,7 @@ services:
       SPRING_DATASOURCE_URL: >-
         jdbc:mysql://${MYSQL_HOST:-host.docker.internal}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE:-easytrans}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
       DASHSCOPE_API_KEY: ${DASHSCOPE_API_KEY:-}
+      DASHSCOPE_MODEL: ${DASHSCOPE_MODEL:-qwen3.7-plus}
       MIMO_API_KEY: ${MIMO_API_KEY:-}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       EMAIL_DEV_MODE: ${EMAIL_DEV_MODE:-false}
