@@ -136,6 +136,9 @@ public class OpenAiCompatibleChatTransport implements LlmChatTransport {
         if (provider == LlmProvider.MIMO) {
             body.put("thinking", Map.of("type", "disabled"));
         }
+        if (provider == LlmProvider.DASHSCOPE) {
+            body.put("enable_thinking", false);
+        }
     }
 
     private HttpURLConnection openStreamConnection(LlmProviderEntry endpoint) throws Exception {
